@@ -26,7 +26,7 @@ class AuthController extends Controller
             'last_name' => $validatedData['last_name'],
             'phone_number' => $validatedData['phone_number'],
             'password' => bcrypt($validatedData['password']),
-            'role_id' => 2,
+            'role_id' => 3,
         ]);
          $token = auth('api')->login($user);
         // إرجاع الاستجابة
@@ -78,10 +78,17 @@ class AuthController extends Controller
 
     protected function respondWithToken($token)
     {
+        $user = auth('api')->user();
+
         return response()->json([
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => auth('api')->factory()->getTTL() * 60
+            'message' => 'Logged in successfully',
+            'data' => [
+                'token' => $token,
+                'first_name' => $user->first_name ,
+                'last_name' => $user->last_name,
+            ],
+            'status' => true,
+            'code' => 200
         ]);
     }
 }

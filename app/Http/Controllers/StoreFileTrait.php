@@ -17,11 +17,11 @@ trait StoreFileTrait
         // إنشاء اسم ملف فريد
         $fileNameToStore = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
-        // تخزين الملف في الموقع المحدد
+        // تخزين الملف في الموقع المحدد ضمن التخزين العام
         $file->storeAs($location, $fileNameToStore, 'public');
 
-        // إرجاع الرابط العام للملف
-        return Storage::url($location . '/' . $fileNameToStore);
+        // إرجاع الرابط الكامل للملف
+        $publicUrl = asset('storage/' . $location . '/' . $fileNameToStore);
+        return $publicUrl;
     }
-
 }
