@@ -4,62 +4,74 @@ namespace App\Http\Controllers;
 
 use App\Models\Favorite;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use function Laravel\Prompts\select;
 
 class FavoriteController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    // إضافة منتج إلى المفضلة
+    public function addToFavorites(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'product_id' => 'required|exists:products,id',
+        ]);
+
+        if ($validator->fails()) {
+            return ResponseFormatter::error('Validation Error', $validator->errors(), 422);
+        }
+
+        $userId = Auth::id();
+
+        // تحقق إذا كان المنتج موجودًا بالفعل في المفضلة
+        $exists = Favorite::where('user_id', $userId)
+            ->where('product_id', $request->product_id)
+            ->exists();
+
+        if ($exists) {
+            return ResponseFormatter::error('Product is already in favorites', null, 409);
+        }
+
+        $favorite = Favorite::create([
+            'user_id' => $userId,
+            'product_id' => $request->product_id,
+        ]);
+
+        return ResponseFormatter::success('Product added to favorites', $favorite, 201);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    // حذف منتج من المفضلة
+    public function removeFromFavorites($id)
     {
-        //
+
+        $favorite = Favorite::query()->find($id);
+
+        if (!$favorite) {
+            return ResponseFormatter::error('Product not found in favorites', null, 404);
+        }
+
+        $favorite->delete();
+
+        return ResponseFormatter::success('Product removed from favorites', $favorite, 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    // عرض قائمة المنتجات المفضلة
+    public function getFavorites()
     {
-        //
-    }
+        $user_id = Auth::id();
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Favorite $favorite)
-    {
-        //
-    }
+        // الحصول على قائمة المنتجات المفضلة مع معلومات المنتج فقط
+        $favorites = Favorite::where('user_id', $user_id)
+            ->with(['product' => function ($query) {
+                $query->select('id', 'name', 'product_picture', 'description', 'price');
+            }])
+            ->get()
+            ->pluck('product'); // استخرج فقط معلومات المنتج من العلاقة
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Favorite $favorite)
-    {
-        //
-    }
+        if ($favorites->isEmpty()) {
+            return ResponseFormatter::error('No favorite products found', null, 404);
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Favorite $favorite)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Favorite $favorite)
-    {
-        //
+        return ResponseFormatter::success('Favorite products retrieved successfully', $favorites, 200);
     }
 }
