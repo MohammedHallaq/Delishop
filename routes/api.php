@@ -4,7 +4,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductRatingController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\StoreRatingController;
 use App\Http\Middleware\JwtMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -49,4 +51,20 @@ Route::group(['prefix'=>'favorite'],function (){
     Route::post('addToFavorite',[FavoriteController::class,'addToFavorites'])->middleware([JwtMiddleware::class]);
     Route::delete('removeFromFavorite/{id}',[FavoriteController::class,'removeFromFavorites'])->middleware([JwtMiddleware::class]);
     Route::get('getFavorites',[FavoriteController::class,'getFavorites'])->middleware([JwtMiddleware::class]);
+});
+
+Route::group(['prefix'=>'storeRating'],function (){
+    Route::post('addRating',[StoreRatingController::class,'addRating'])->middleware([JwtMiddleware::class]);
+    Route::post('updateRating',[StoreRatingController::class,'updateRating'])->middleware([JwtMiddleware::class]);
+    Route::delete('deleteRating/{rating_id}',[StoreRatingController::class,'deleteRating'])->middleware([JwtMiddleware::class]);
+    Route::get('getRatings/{store_id}',[StoreRatingController::class,'getRatings']);
+    Route::get('getRatingValue/{store_id}',[StoreRatingController::class,'getRatingValue'])->middleware([JwtMiddleware::class]);
+});
+
+Route::group(['prefix'=>'productRating'],function (){
+    Route::post('addRating',[ProductRatingController::class,'addRating'])->middleware([JwtMiddleware::class]);
+    Route::post('updateRating',[ProductRatingController::class,'updateRating'])->middleware([JwtMiddleware::class]);
+    Route::delete('deleteRating/{rating_id}',[ProductRatingController::class,'deleteRating'])->middleware([JwtMiddleware::class]);
+    Route::get('getRatings/{product_id}',[ProductRatingController::class,'getRatings']);
+    Route::get('getRatingValue/{product_id}',[ProductRatingController::class,'getRatingValue'])->middleware([JwtMiddleware::class]);
 });
