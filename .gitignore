@@ -3,8 +3,13 @@
 /public/build
 /public/hot
 # /public/storage
+<<<<<<< HEAD
 #/storage/*.key
 #/storage/pail
+=======
+# /storage/*.key
+/storage/pail
+>>>>>>> a44409669ee6199b68beba0930b2ceac2aa45497
 /vendor
 .env
 .env.backup

@@ -1,0 +1,10 @@
+<<<<<<< HEAD
+=======
+private/
+
+# *
+# !private/
+# !public/
+# !public/uploads/
+# !.gitignore
+>>>>>>> a44409669ee6199b68beba0930b2ceac2aa45497
