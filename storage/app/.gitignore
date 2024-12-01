@@ -1,5 +1,7 @@
-*
-!private/
-!public/
-!public/uploads/
-!.gitignore
+private/
+
+# *
+# !private/
+# !public/
+# !public/uploads/
+# !.gitignore
