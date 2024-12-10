@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Favorite;
 use App\Models\Store;
+use App\Models\StoreRating;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -138,7 +140,30 @@ class StoreController extends Controller
         $store = Store::query()->find($id);
         if (is_null($store))
             return ResponseFormatter::error('The Store Not Found',null,404);
-        return ResponseFormatter::success('The Store Got Successfully',$store,200);
+        // التحقق مما إذا كان المتجر موجوداً في المفضلة
+        $isFavorite = Favorite::where('user_id', $store->user_id)
+            ->where('product_id', $id)
+            ->exists();
+
+        // الحصول على متوسط تقييمات المتجر
+        $rating = StoreRating::where('store_id', $id)->avg('rating');
+
+        // تشكيل البيانات للخروج
+        $data = [
+            'id' => $store->id,
+            'user_id' => $store->user_id,
+            'category_id' => $store->category_id,
+            'name' => $store->name,
+            'store_picture' => $store->store_picture,
+            'location' => $store->location,
+            'description' => $store->description,
+            'is_favorite' => $isFavorite,
+            'rating' => $rating ?? 0,
+            'created_at' => $store->created_at,
+            'updated_at' => $store->updated_at,
+        ];
+
+        return ResponseFormatter::success('The Store Got Successfully',$data,200);
     }
 
 
