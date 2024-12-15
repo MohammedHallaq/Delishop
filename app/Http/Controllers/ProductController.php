@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Favorite;
 use App\Models\Product;
+use App\Models\ProductRating;
 use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -116,15 +118,31 @@ class ProductController extends Controller
     public function getProduct($id)
     {
         $product = Product::query()->with('store')->find($id);
+        if (is_null($product))
+            return ResponseFormatter::error('The Product Not Found',null,404);
+        $isFavorite = Favorite::where('user_id', Auth::id())
+            ->where('product_id', $id)
+            ->exists();
+
+        // Get the average rating of the product
+        $rating = ProductRating::where('product_id', $id)->avg('rating');
+
+        // Prepare the response data
         $data = [
-            "store_name" => $product->store->name,
-            "name"  => $product->name,
-            "description" => $product->description,
-            "product_picture" => $product->product_picture,
-            "price" => $product->price,
-            "discount" => $product->discount,
-            "quantity" => $product->quantity,
+            'id' => $product->id,
+            'store' => $product->store->name,
+            'name' => $product->name,
+            'description' => $product->description,
+            'product_picture' => $product->product_picture,
+            'price' => $product->price,
+            'discount' => $product->discount,
+            'quantity' => $product->quantity,
+            'is_favorite' => $isFavorite,
+            'rating' => $rating ?? 0,
+            'created_at' => $product->created_at,
+            'updated_at' => $product->updated_at,
         ];
+
         return ResponseFormatter::success('The Product Got Successfully',$data,200);
     }
 

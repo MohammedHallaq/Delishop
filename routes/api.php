@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductOrderController;
 use App\Http\Controllers\ProductRatingController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\StoreRatingController;
@@ -67,4 +68,7 @@ Route::group(['prefix'=>'productRating'],function (){
     Route::delete('deleteRating/{rating_id}',[ProductRatingController::class,'deleteRating'])->middleware([JwtMiddleware::class]);
     Route::get('getRatings/{product_id}',[ProductRatingController::class,'getRatings']);
     Route::get('getRatingValue/{product_id}',[ProductRatingController::class,'getRatingValue'])->middleware([JwtMiddleware::class]);
+});
+Route::group(['prefix'=>'order'],function (){
+    Route::post('createOrder',[ProductOrderController::class,'createOrder'])->middleware([JwtMiddleware::class]);
 });
