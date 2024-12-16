@@ -130,7 +130,7 @@ class ProductController extends Controller
         // Prepare the response data
         $data = [
             'id' => $product->id,
-            'store' => $product->store->name,
+            'store_id' => $product->store->id,
             'name' => $product->name,
             'description' => $product->description,
             'product_picture' => $product->product_picture,
@@ -138,7 +138,7 @@ class ProductController extends Controller
             'discount' => $product->discount,
             'quantity' => $product->quantity,
             'is_favorite' => $isFavorite,
-            'rating' => $rating ?? 0,
+            'rating' => $rating ?? null,
             'created_at' => $product->created_at,
             'updated_at' => $product->updated_at,
         ];

@@ -44,7 +44,7 @@ Route::group(['prefix'=>'product'],function (){
     Route::post('update',[ProductController::class,'update'])->middleware([JwtMiddleware::class]);
     Route::delete('delete/{id}',[ProductController::class,'delete'])->middleware([JwtMiddleware::class]);
     Route::get('getProductsByStore/{store_id}',[ProductController::class,'getProductsByStore']);
-    Route::get('getProduct/{id}',[ProductController::class,'getProduct']);
+    Route::get('getProduct/{id}',[ProductController::class,'getProduct'])->middleware([JwtMiddleware::class]);
     Route::post('search',[ProductController::class,'search']);
 
 });

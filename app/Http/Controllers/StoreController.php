@@ -158,7 +158,7 @@ class StoreController extends Controller
             'location' => $store->location,
             'description' => $store->description,
             'is_favorite' => $isFavorite,
-            'rating' => $rating ?? 0,
+            'rating' => $rating ?? null,
             'created_at' => $store->created_at,
             'updated_at' => $store->updated_at,
         ];
