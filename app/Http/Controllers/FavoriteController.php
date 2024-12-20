@@ -41,19 +41,40 @@ class FavoriteController extends Controller
     }
 
     // حذف منتج من المفضلة
-    public function removeFromFavorites($id)
-    {
+    // public function removeFromFavorites($id)
+    // {
 
-        $favorite = Favorite::query()->find($id);
+    //     $favorite = Favorite::query()->find($id);
 
-        if (!$favorite) {
-            return ResponseFormatter::error('Product not found in favorites', null, 404);
-        }
+    //     if (!$favorite) {
+    //         return ResponseFormatter::error('Product not found in favorites', null, 404);
+    //     }
 
-        $favorite->delete();
+    //     $favorite->delete();
 
-        return ResponseFormatter::success('Product removed from favorites', $favorite, 200);
+    //     return ResponseFormatter::success('Product removed from favorites', $favorite, 200);
+    // }
+    public function removeFromFavorites($productId)
+{
+    $userId = Auth::id();  // Get the authenticated user's ID
+
+    // Find the favorite by user_id and product_id
+    $favorite = Favorite::where('user_id', $userId)
+                        ->where('product_id', $productId)
+                        ->first();
+
+    // If the favorite doesn't exist, return an error
+    if (!$favorite) {
+        return ResponseFormatter::error('Product not found in favorites', null, 404);
     }
+
+    // Delete the favorite
+    $favorite->delete();
+
+    // Return success response
+    return ResponseFormatter::success('Product removed from favorites', $favorite, 200);
+}
+
 
     // عرض قائمة المنتجات المفضلة
     public function getFavorites()
