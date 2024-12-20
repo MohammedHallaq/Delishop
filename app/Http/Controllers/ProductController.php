@@ -138,7 +138,7 @@ class ProductController extends Controller
             'discount' => $product->discount,
             'quantity' => $product->quantity,
             'is_favorite' => $isFavorite,
-            'rating' => $rating ?? 0,
+            'rating' => $rating ?? null,
             'created_at' => $product->created_at,
             'updated_at' => $product->updated_at,
         ];
