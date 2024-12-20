@@ -109,12 +109,25 @@ class ProductController extends Controller
 
         return ResponseFormatter::success('The Product Deleted Successfully',$product,200);
     }
-    public  function getProductsByStore($store_id)
+    public function getProductsByStore($store_id)
     {
-        $products = Product::query()->with('store')->where('store_id',$store_id)->get();
-        return ResponseFormatter::success('The Products Got By Store Successfully',$products,200);
-
+        // Check if the store exists
+        $store = Store::find($store_id);
+    
+        if (!$store) {
+            return ResponseFormatter::error('Store not found', null, 404);
+        }
+    
+        // Fetch products by store_id
+        $products = Product::where('store_id', $store_id)->get();
+    
+        if ($products->isEmpty()) {
+            return ResponseFormatter::error('No products found for this store', [], 404);
+        }
+    
+        return ResponseFormatter::success('Products retrieved successfully', $products, 200);
     }
+    
     public function getProduct($id)
     {
         $product = Product::query()->with('store')->find($id);
