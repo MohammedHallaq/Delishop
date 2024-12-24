@@ -84,7 +84,7 @@ class FavoriteController extends Controller
         // الحصول على قائمة المنتجات المفضلة مع معلومات المنتج فقط
         $favorites = Favorite::where('user_id', $user_id)
             ->with(['product' => function ($query) {
-                $query->select('id', 'name', 'product_picture', 'description', 'price');
+                $query->select('id', 'store_id', 'name', 'product_picture', 'description', 'price', 'discount', 'quantity');
             }])
             ->get()
             ->pluck('product'); // استخرج فقط معلومات المنتج من العلاقة
