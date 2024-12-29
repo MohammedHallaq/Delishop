@@ -75,24 +75,21 @@ class FavoriteController extends Controller
     return ResponseFormatter::success('Product removed from favorites', $favorite, 200);
 }
 
+// عرض قائمة المنتجات المفضلة
+public function getFavorites()
+{
+    $user_id = Auth::id();
 
-    // عرض قائمة المنتجات المفضلة
-    public function getFavorites()
-    {
-        $user_id = Auth::id();
+    // الحصول على قائمة المنتجات المفضلة مع معلومات المنتج فقط
+    $favorites = Favorite::where('user_id', $user_id)
+        ->with(['product' => function ($query) {
+            $query->select('id', 'store_id', 'name', 'product_picture', 'description', 'price', 'discount', 'quantity');
+        }])
+        ->get()
+        ->pluck('product'); // استخرج فقط معلومات المنتج من العلاقة
 
-        // الحصول على قائمة المنتجات المفضلة مع معلومات المنتج فقط
-        $favorites = Favorite::where('user_id', $user_id)
-            ->with(['product' => function ($query) {
-                $query->select('id', 'store_id', 'name', 'product_picture', 'description', 'price', 'discount', 'quantity');
-            }])
-            ->get()
-            ->pluck('product'); // استخرج فقط معلومات المنتج من العلاقة
+    // If there are no favorites, return the same response model with an empty list
+    return ResponseFormatter::success('Favorite products retrieved successfully', $favorites, 200);
+}
 
-        if ($favorites->isEmpty()) {
-            return ResponseFormatter::error('No favorite products found', null, 404);
-        }
-
-        return ResponseFormatter::success('Favorite products retrieved successfully', $favorites, 200);
-    }
 }
