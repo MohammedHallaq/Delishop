@@ -18,7 +18,7 @@ class AuthController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'phone_number' => 'required|regex:/^09\d{8}$/|unique:users,phone_number',
-            'password' => 'required|string|min:6|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d{5,})(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/|confirmed',
+            'password' => 'required|string|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#?!@$%^&*-])[A-Za-z\d#$?!@$%^&*-]{8,}$/|confirmed',
         ]);
 
         if ($validator->fails())
