@@ -135,6 +135,27 @@ class StoreController extends Controller
 
         return ResponseFormatter::success(' Stores retrieved successfully',$stores,200);
     }
+    public function getStoresByIds(Request $request)
+    {
+        // Get the list of store IDs from the request input
+        $storeIds = $request->input('store_ids');
+
+        // Validate that store_ids is an array of integers
+        if (empty($storeIds) || !is_array($storeIds)) {
+            return ResponseFormatter::error('Store IDs must be provided as an array', null, 400);
+        }
+
+        // Fetch stores by the provided IDs
+        $stores = Store::whereIn('id', $storeIds)->get();
+        // Check if any stores were found
+        if ($stores->isEmpty()) {
+            return ResponseFormatter::success('No Stores Found', [], 200);  // Returning an empty list with a 200 status
+        }
+
+        // Return the stores in a success response
+        return ResponseFormatter::success('Stores retrieved successfully', $stores, 200);
+    }
+
     public function getStore($id)
     {
         $store = Store::query()->find($id);
