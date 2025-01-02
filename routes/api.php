@@ -36,8 +36,8 @@ Route::group(['prefix'=>'store'],function (){
     Route::delete('delete/{id}',[StoreController::class,'delete'])->middleware([JwtMiddleware::class]);
     Route::get('getStoreByCategory/{category_id}',[StoreController::class,'getStoreByCategory']);
     Route::post('search',[StoreController::class,'search']);
+    Route::post('getStoresByIds',[StoreController::class,'getStoresByIds']);
     Route::get('getStore/{id}',[StoreController::class,'getStore']);
-
 });
 Route::group(['prefix'=>'product'],function (){
     Route::post('create',[ProductController::class,'create'])->middleware([JwtMiddleware::class]);
