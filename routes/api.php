@@ -3,11 +3,13 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\LocationsController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductOrderController;
 use App\Http\Controllers\ProductRatingController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\StoreRatingController;
+use App\Http\Controllers\WalletController;
 use App\Http\Middleware\JwtMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -69,6 +71,15 @@ Route::group(['prefix'=>'productRating'],function (){
     Route::get('getRatings/{product_id}',[ProductRatingController::class,'getRatings']);
     Route::get('getRatingValue/{product_id}',[ProductRatingController::class,'getRatingValue'])->middleware([JwtMiddleware::class]);
 });
+Route::group(['prefix'=>'location'],function (){
+    Route::post('addLocation',[LocationsController::class,'addLocation'])->middleware([JwtMiddleware::class]);
+    Route::get('getUserLocations',[LocationsController::class,'getUserLocations'])->middleware([JwtMiddleware::class]);
+    Route::get('getLastUsedLocation',[LocationsController::class,'getLastUsedLocation'])->middleware([JwtMiddleware::class]);
+    Route::delete('deleteLocation/{id}',[LocationsController::class,'deleteLocation'])->middleware([JwtMiddleware::class]);
+});
 Route::group(['prefix'=>'order'],function (){
     Route::post('createOrder',[ProductOrderController::class,'createOrder'])->middleware([JwtMiddleware::class]);
+});
+Route::group(['prefix'=>'wallet'],function (){
+    Route::post('deposit',[WalletController::class,'deposit'])->middleware([JwtMiddleware::class]);
 });

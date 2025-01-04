@@ -11,6 +11,7 @@ class Order extends Model
         'total_amount',
         'status',
         'order_date',
+        'location_id'
     ];
     public function user()
     {
@@ -21,5 +22,9 @@ class Order extends Model
     {
         return $this->belongsToMany(Product::class, 'products_orders')
             ->withPivot('number');
+    }
+    public function location()
+    {
+        return $this->belongsTo(Locations::class);
     }
 }

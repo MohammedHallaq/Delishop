@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductOrder;
+use App\Models\Wallet;
+use App\Models\WalletTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -18,14 +20,12 @@ class ProductOrderController extends Controller
             'products' => 'required|array',
             'products.*.product_id' => 'required|exists:products,id',
             'products.*.quantity' => 'required|numeric|min:1',
+            'location_id'=> 'required|exists:locations,id'
         ]);
 
         if ($validator->fails()) {
             return ResponseFormatter::error('Validation error', $validator->errors(), 422);
         }
-
-
-
         // حساب المجموع الكلي للطلبية
         $totalAmount = 0;
         $productsData = [];
@@ -40,13 +40,16 @@ class ProductOrderController extends Controller
                 'price' => $productData->price,
             ];
         }
-
+        $wallet = Wallet::query()->where('user_id',Auth::id())->first();
+        if (!$wallet || $totalAmount > $wallet->balance)
+            return ResponseFormatter::error('You do not have enough balance in your wallet',null,404);
         // إنشاء الطلبية
         $order = Order::create([
             'user_id' => Auth::id(),
             'total_amount' => $totalAmount,
             'status' => 'pending',
             'order_date' => now(),
+            'location_id' => $request->location_id
         ]);
 
         // ربط المنتجات بالطلبية
@@ -57,11 +60,26 @@ class ProductOrderController extends Controller
                 'number' => $productData['quantity'],
             ]);
         }
+        // خصم الرصيد من المحفظة
+        $wallet->balance -= $totalAmount;
+        $wallet->save();
+
+        WalletTransaction::create([
+            'wallet_id'=> $wallet->id,
+            'transaction_type' => 'payment',
+            'amount'=>$totalAmount,
+            'balance_after_transaction'=>$wallet->balance
+        ]);
+
+
+        // البيانات للرد
         $data = [
-            'order_id'=> $order->id,
+            'order_id' => $order->id,
             'status' => $order->status,
             'order_date' => $order->order_date,
-            'content' => $productData
+            'location_id' => $order->location_id,
+            'content' => $productsData,
+            'amount_total' => $totalAmount
         ];
 
         return ResponseFormatter::success('Order created successfully', $data,201);

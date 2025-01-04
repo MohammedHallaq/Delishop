@@ -17,6 +17,7 @@ return new class extends Migration
             $table->decimal('total_amount', 10, 2);
             $table->dateTime('order_date');
             $table->enum('status', ['pending', 'processing', 'completed', 'cancelled'])->default('pending');
+            $table->foreignId('location_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }
