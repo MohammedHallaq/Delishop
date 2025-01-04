@@ -82,4 +82,5 @@ Route::group(['prefix'=>'order'],function (){
 });
 Route::group(['prefix'=>'wallet'],function (){
     Route::post('deposit',[WalletController::class,'deposit'])->middleware([JwtMiddleware::class]);
+    Route::get('balance', [WalletController::class, 'getMyBalance'])->middleware([JwtMiddleware::class]);
 });

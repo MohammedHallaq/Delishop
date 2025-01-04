@@ -41,4 +41,22 @@ class WalletController extends Controller
         return ResponseFormatter::success('deposit wallet successfully',$wallet,200);
 
     }
+
+    public function getMyBalance(Request $request)
+    {
+        
+        $user = $request->user(); 
+
+        
+        $wallet = Wallet::firstOrCreate(
+            ['user_id' => $user->id],  // Search criteria
+            ['balance' => 0]          // Default values if not found
+        );
+
+        // Return the wallet balance
+        return ResponseFormatter::success('Wallet balance retrieved successfully', [
+            'balance' => $wallet->balance
+        ], 200);
+    }
+
 }
