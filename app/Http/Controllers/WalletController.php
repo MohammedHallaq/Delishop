@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class WalletController extends Controller
@@ -42,21 +43,18 @@ class WalletController extends Controller
 
     }
 
-    public function getMyBalance(Request $request)
+    public function getMyBalance()
     {
-        
-        $user = $request->user(); 
+        $wallet = Wallet::query()->where('user_id',Auth::id())->first();
+        if (is_null($wallet)){
+            Wallet::create([
+                'user_id'=>Auth::id(),
+                'balance' => 0
+            ]);
+        }
 
-        
-        $wallet = Wallet::firstOrCreate(
-            ['user_id' => $user->id],  // Search criteria
-            ['balance' => 0]          // Default values if not found
-        );
 
-        // Return the wallet balance
-        return ResponseFormatter::success('Wallet balance retrieved successfully', [
-            'balance' => $wallet->balance
-        ], 200);
+        return ResponseFormatter::success('Wallet balance retrieved successfully',['balance'=>$wallet->balance],200);
     }
 
 }

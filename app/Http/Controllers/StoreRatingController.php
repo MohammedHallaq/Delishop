@@ -27,6 +27,11 @@ class StoreRatingController extends Controller
         ]);
         return ResponseFormatter::success('Add Rating Successful', $rating,200);
     }
+    public function getRatingUser()
+    {
+        $ratingsStore = StoreRating::query()->where('user_id',Auth::id())->get();
+        return ResponseFormatter::success('Get My Rating successfully',$ratingsStore,200);
+    }
     public function getRatings($id_store)
     {
         $store = Store::query()->find($id_store);

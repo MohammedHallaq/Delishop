@@ -18,13 +18,14 @@ class Order extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function products()
+    public function productsOrder()
     {
-        return $this->belongsToMany(Product::class, 'products_orders')
-            ->withPivot('number');
+        return $this->hasMany(ProductOrder::class);
     }
+
     public function location()
     {
         return $this->belongsTo(Locations::class);
     }
+
 }
