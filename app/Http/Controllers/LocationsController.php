@@ -12,7 +12,7 @@ class LocationsController extends Controller
 {
     public function addLocation(Request $request)
     {
-        $validator = Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
             'location_name' => 'required|string|max:255',
             'location_url' => 'required | url'
         ]);

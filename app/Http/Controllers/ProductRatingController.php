@@ -28,6 +28,11 @@ class ProductRatingController extends Controller
         ]);
         return ResponseFormatter::success('Add Rating Successful', $rating,200);
     }
+    public function getRatingUser()
+    {
+        $ratingsProduct = ProductRating::query()->where('user_id',Auth::id())->get();
+        return ResponseFormatter::success('Get My Rating successfully',$ratingsProduct,200);
+    }
     public function getRatings($id_product)
     {
         $product = Product::query()->find($id_product);

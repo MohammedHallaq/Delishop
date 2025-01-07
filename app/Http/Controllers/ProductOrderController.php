@@ -30,7 +30,7 @@ class ProductOrderController extends Controller
         $totalAmount = 0;
         $productsData = [];
         foreach ($request->products as $product) {
-            $productData = Product::find($product['product_id']);
+            $productData = Product::query()->find($product['product_id']);
             $totalAmount += $productData->price * $product['quantity'];
 
             // تخزين المنتجات الخاصة بالطلب
@@ -38,6 +38,9 @@ class ProductOrderController extends Controller
                 'product_id' => $product['product_id'],
                 'quantity' => $product['quantity'],
                 'price' => $productData->price,
+                'name' => $productData->name,
+                'subtotal' => $productData->price * $product['quantity'],
+
             ];
         }
         $wallet = Wallet::query()->where('user_id',Auth::id())->first();
@@ -57,9 +60,15 @@ class ProductOrderController extends Controller
             ProductOrder::create([
                 'order_id' => $order->id,
                 'product_id' => $productData['product_id'],
-                'number' => $productData['quantity'],
+                'name' => $productData['name'],
+                'price' => $productData['price'],
+                'quantity' => $productData['quantity'],
+                'subtotal' => $productData['price'] * $productData['quantity'],
+
             ]);
+
         }
+
         // خصم الرصيد من المحفظة
         $wallet->balance -= $totalAmount;
         $wallet->save();
@@ -79,15 +88,26 @@ class ProductOrderController extends Controller
             'order_date' => $order->order_date,
             'location_id' => $order->location_id,
             'content' => $productsData,
-            'amount_total' => $totalAmount
+            'total_amount' => $totalAmount
         ];
 
         return ResponseFormatter::success('Order created successfully', $data,201);
     }
-    public function updateOrderStatus(Request $request, $orderId)
+
+    public function getUserOrders()
+    {
+        $orders = Order::with('productsOrder')->where('user_id',Auth::id())->get();
+        if ($orders->isEmpty())
+            return ResponseFormatter::error('Orders not found', null,404);
+
+        return ResponseFormatter::success('Orders found', $orders,200);
+
+    }
+    public function updateStatusOrder(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:pending,processing,completed,canceled',
+            'status' => 'required|in:pending,processing,completed,cancelled',
+            'order_id'=>'required|exists:orders,id'
         ]);
 
         if ($validator->fails()) {
@@ -95,9 +115,12 @@ class ProductOrderController extends Controller
         }
 
         // الحصول على الطلبية
-        $order = Order::find($orderId);
+        $order = Order::find($request->order_id);
         if (is_null($order)) {
             return ResponseFormatter::error('Order not found', null, 404);
+        }
+        if ($order->status == 'completed' || $order->status == 'cancelled'){
+            return ResponseFormatter::success('The  Order Status is already updated ',$order,200);
         }
 
         // تعديل حالة الطلب
@@ -107,24 +130,47 @@ class ProductOrderController extends Controller
         // إذا كانت حالة الطلب هي "مكتملة"، نقوم بتحديث الكميات
         if ($order->status == 'completed') {
             // الحصول على جميع المنتجات المرتبطة بالطلب
-            $productsInOrder = ProductOrder::where('order_id', $orderId)->get();
+            $productsInOrder = ProductOrder::query()->where('order_id',$request->order_id)->get();
 
             foreach ($productsInOrder as $productOrder) {
                 $product = Product::find($productOrder->product_id);
                 if ($product) {
                     // تقليص الكمية بناءً على الكمية المطلوبة في الطلب
-                    $product->quantity -= $productOrder->number;
+                    $product->quantity -= $productOrder->quantity;
                     $product->save();
                 }
             }
         }
+        // إذا كانت حالة الطلب هي "محذوف"، نقوم بتحديث الكميات
+        if ($order->status == 'cancelled') {
+            // الحصول على جميع المنتجات المرتبطة بالطلب
+            $productsInOrder = ProductOrder::query()->where('order_id',$request->order_id)->get();
+
+            foreach ($productsInOrder as $productOrder) {
+                $product = Product::find($productOrder->product_id);
+                if ($product) {
+                    // زيادة الكمية بناءً على الكمية المطلوبة في الطلب
+                    $product->quantity += $productOrder->quantity;
+                    $product->save();
+                }
+            }
+            //اعادة المبلغ الى المحفطة
+            $wallet = Wallet::query()->where('user_id',$order->user_id)->first();
+            $wallet->balance += $order->total_amount;
+            $wallet->save();
+            //حذف الطلبية
+            $order = Order::with('productsOrder')->where('id',$request->order_id);
+            $order->delete();
+        }
+
 
         return ResponseFormatter::success('Order status updated successfully', $order, 200);
     }
 
-    public function addProductToOrder(Request $request, $orderId)
+    public function addProductToOrder(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'order_id' => 'required|exists:orders,id',
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|numeric|min:1',
         ]);
@@ -134,7 +180,7 @@ class ProductOrderController extends Controller
         }
 
         // الحصول على الطلبية
-        $order = Order::find($orderId);
+        $order = Order::query()->find($request->input('order_id'));
         if (is_null($order)) {
             return ResponseFormatter::error('Order not found', null, 404);
         }
@@ -145,24 +191,25 @@ class ProductOrderController extends Controller
         }
 
         // إضافة المنتج للطلبية
-        $product = Product::find($request->product_id);
+        $product = Product::query()->find($request->input(['product_id']));
         ProductOrder::create([
             'order_id' => $order->id,
-            'product_id' => $request->product_id,
-            'number' => $request->quantity,
+            'product_id' => $request->input(['product_id']),
+            'quantity' => $request->input(['quantity']),
         ]);
 
         // تحديث المبلغ الإجمالي للطلبية
-        $totalAmount = $order->total_amount + ($product->price * $request->quantity);
+        $totalAmount = $order->total_amount + ($product->price * $request->input(['quantity']));
         $order->total_amount = $totalAmount;
         $order->save();
 
         return ResponseFormatter::success('Product added to order successfully', $order, 200);
     }
-    public function removeProductFromOrder(Request $request, $orderId)
+    public function removeProductFromOrder(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'product_id' => 'required|exists:products,id',
+            'order_id' => 'required|exists:orders,id',
         ]);
 
         if ($validator->fails()) {
@@ -170,7 +217,7 @@ class ProductOrderController extends Controller
         }
 
         // الحصول على الطلبية
-        $order = Order::find($orderId);
+        $order = Order::query()->find($request->input('order_id'));
         if (is_null($order)) {
             return ResponseFormatter::error('Order not found', null, 404);
         }
@@ -181,13 +228,13 @@ class ProductOrderController extends Controller
         }
 
         // العثور على المنتج في الطلبية وحذفه
-        $productOrder = ProductOrder::where('order_id', $orderId)
-            ->where('product_id', $request->product_id)
+        $productOrder = ProductOrder::where('order_id',$order->id)
+            ->where('product_id', $request->input(['product_id']))
             ->first();
 
         if ($productOrder) {
             // تحديث المبلغ الإجمالي للطلبية
-            $product = Product::find($request->product_id);
+            $product = Product::query()->find($request->input(['product_id']));
             $totalAmount = $order->total_amount - ($product->price * $productOrder->number);
             $order->total_amount = $totalAmount;
             $order->save();

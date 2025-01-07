@@ -7,6 +7,7 @@ use App\Http\Controllers\LocationsController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductOrderController;
 use App\Http\Controllers\ProductRatingController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\StoreRatingController;
 use App\Http\Controllers\WalletController;
@@ -23,7 +24,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('refresh', [AuthController::class,'refresh']);
     Route::post('me', [AuthController::class,'me']);
 });
-//Routes Categories
+
 Route::group(['prefix'=>'categories'],function (){
     Route::post('create',[CategoryController::class,'create']);
     Route::post('update',[CategoryController::class,'update']);
@@ -61,6 +62,7 @@ Route::group(['prefix'=>'storeRating'],function (){
     Route::post('updateRating',[StoreRatingController::class,'updateRating'])->middleware([JwtMiddleware::class]);
     Route::delete('deleteRating/{rating_id}',[StoreRatingController::class,'deleteRating'])->middleware([JwtMiddleware::class]);
     Route::get('getRatings/{store_id}',[StoreRatingController::class,'getRatings']);
+    Route::get('getMyRating',[StoreRatingController::class,'getRatingUser'])->middleware([JwtMiddleware::class]);
     Route::get('getRatingValue/{store_id}',[StoreRatingController::class,'getRatingValue'])->middleware([JwtMiddleware::class]);
 });
 
@@ -69,6 +71,7 @@ Route::group(['prefix'=>'productRating'],function (){
     Route::post('updateRating',[ProductRatingController::class,'updateRating'])->middleware([JwtMiddleware::class]);
     Route::delete('deleteRating/{rating_id}',[ProductRatingController::class,'deleteRating'])->middleware([JwtMiddleware::class]);
     Route::get('getRatings/{product_id}',[ProductRatingController::class,'getRatings']);
+    Route::get('getMyRating',[ProductRatingController::class,'getRatingUser'])->middleware([JwtMiddleware::class]);
     Route::get('getRatingValue/{product_id}',[ProductRatingController::class,'getRatingValue'])->middleware([JwtMiddleware::class]);
 });
 Route::group(['prefix'=>'location'],function (){
@@ -79,9 +82,18 @@ Route::group(['prefix'=>'location'],function (){
     Route::delete('deleteLocation/{id}',[LocationsController::class,'deleteLocation'])->middleware([JwtMiddleware::class]);
 });
 Route::group(['prefix'=>'order'],function (){
+    Route::post('addProductToOrder',[ProductOrderController::class,'addProductToOrder'])->middleware([JwtMiddleware::class]);
+    Route::post('removeProductFromOrder',[ProductOrderController::class,'removeProductFromOrder'])->middleware([JwtMiddleware::class]);
+    Route::post('updateStatusOrder',[ProductOrderController::class,'updateStatusOrder'])->middleware([JwtMiddleware::class]);
     Route::post('createOrder',[ProductOrderController::class,'createOrder'])->middleware([JwtMiddleware::class]);
+    Route::get('getUserOrders',[ProductOrderController::class,'getUserOrders'])->middleware([JwtMiddleware::class]);
 });
 Route::group(['prefix'=>'wallet'],function (){
     Route::post('deposit',[WalletController::class,'deposit'])->middleware([JwtMiddleware::class]);
     Route::get('balance', [WalletController::class, 'getMyBalance'])->middleware([JwtMiddleware::class]);
+});
+Route::group(['prefix'=>'profile'],function (){
+    Route::post('createProfile',[ProfileController::class,'createProfile'])->middleware([JwtMiddleware::class]);
+    Route::post('updateProfile',[ProfileController::class,'updateProfile'])->middleware([JwtMiddleware::class]);
+    Route::get('getProfile',[ProfileController::class,'getProfile'])->middleware([JwtMiddleware::class]);
 });
