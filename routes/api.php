@@ -75,6 +75,7 @@ Route::group(['prefix'=>'location'],function (){
     Route::post('addLocation',[LocationsController::class,'addLocation'])->middleware([JwtMiddleware::class]);
     Route::get('getUserLocations',[LocationsController::class,'getUserLocations'])->middleware([JwtMiddleware::class]);
     Route::get('getLastUsedLocation',[LocationsController::class,'getLastUsedLocation'])->middleware([JwtMiddleware::class]);
+    Route::get('getDefaultUserLocation',[LocationsController::class,'getDefaultUserLocation'])->middleware([JwtMiddleware::class]);
     Route::delete('deleteLocation/{id}',[LocationsController::class,'deleteLocation'])->middleware([JwtMiddleware::class]);
 });
 Route::group(['prefix'=>'order'],function (){
