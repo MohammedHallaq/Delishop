@@ -49,6 +49,28 @@ class LocationsController extends Controller
         return ResponseFormatter::success('get last used location successfully',$location,200);
     }
 
+
+    public function getDefaultUserLocation()
+    {
+        $lastUsedLocationResponse = $this->getLastUsedLocation();
+
+        // Check if the last used location was found
+        if ($lastUsedLocationResponse->getStatusCode() !== 200) {
+            $firstUserLocation = Locations::query()
+                ->where('user_id', Auth::id())
+                ->first();
+
+            if (!$firstUserLocation) {
+                return ResponseFormatter::error('No locations found for this user', null, 404);
+            }
+
+            return ResponseFormatter::success('Get default user location successfully', $firstUserLocation, 200);
+        }
+
+        // Return the last used location if found
+        return $lastUsedLocationResponse;
+    }
+
     public function deleteLocation($id)
     {
         $location=Locations::query()->find($id);

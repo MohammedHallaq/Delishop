@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Product;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class ProductSeeder extends Seeder
@@ -13,7 +12,7 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        for ($i = 1; $i <=  5; $i++) {
+        for ($i = 1; $i <=  4; $i++) {
             for ($j = 1; $j <= 5; $j++) {
                 Product::create([
                     'store_id' => $i,

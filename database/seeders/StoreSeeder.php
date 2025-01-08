@@ -13,7 +13,7 @@ class StoreSeeder extends Seeder
      */
     public function run(): void
     {
-        for ($i = 1; $i <=  5; $i++) {
+        for ($i = 2; $i <=  5; $i++) {
 
             Store::create([
                 'user_id' => $i,

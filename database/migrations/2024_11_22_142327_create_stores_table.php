@@ -13,11 +13,12 @@ return new class extends Migration
     {
         Schema::create('stores', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('category_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('category_id')->constrained('categories')->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('name');
             $table->string('store_picture')->nullable();
-            $table->string('location')->nullable();
+            $table->string('location_name')->nullable();
+            $table->text('location_url')->nullable();
             $table->text('description')->nullable();
             $table->timestamps();
         });

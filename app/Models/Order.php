@@ -11,7 +11,8 @@ class Order extends Model
         'total_amount',
         'status',
         'order_date',
-        'location_id'
+        'location_id',
+        'store_id'
     ];
     public function user()
     {
@@ -26,6 +27,11 @@ class Order extends Model
     public function location()
     {
         return $this->belongsTo(Locations::class);
+    }
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+
     }
 
 }

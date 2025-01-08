@@ -24,7 +24,8 @@ class StoreController extends Controller
            'name' => 'required|unique:stores,name',
            'store_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
            'description' => 'required',
-           'location' => 'required',
+           'location_name' => 'required',
+           'location_url' => 'required|url',
            'category' => 'required|exists:categories,name',
            'phone_number' => 'required|exists:users,phone_number',
        ]);
@@ -32,15 +33,15 @@ class StoreController extends Controller
            return ResponseFormatter::error('Validation Error', $validator->errors(), 422);
        }
        //store picture in project
-       $fileUrl = $this->store($request['store_picture'], 'uploads');
-       $store = Store::create([
-           'user_id' => User::query()->where('phone_number', $request->phone_number)->first()->id,
-           'category_id' => Category::query()->where('name', $request->category)->first()->id,
-           'name' => $request->name,
+       $fileUrl = $this->store($validator['store_picture'], 'uploads');
+       $store = Store::query()->create([
+           'user_id' => User::query()->where('phone_number', $validator['phone_number'])->first()->id,
+           'category_id' => Category::query()->where('name', $validator['category'])->first()->id,
+           'name' => $validator['name'],
            'store_picture' => $fileUrl,
-           'description' => $request->description,
-           'location' => $request->location,
-
+           'description' => $validator['description'],
+           'location_name' => $validator['location_name'],
+           'location_url' => $validator['location_url'],
        ]);
        return ResponseFormatter::success('The Store Created Successfully',$store,201);
    }
@@ -60,7 +61,8 @@ class StoreController extends Controller
             'name' => 'unique:stores,name',
             'store_picture' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
             'description' => 'string|max:255',
-            'location' => 'string|max:255',
+            'location_name' => '',
+            'location_url' => 'url',
             'category' => 'exists:categories,name',
             'id' => 'required|exists:stores,id',
         ]);
@@ -82,10 +84,11 @@ class StoreController extends Controller
         }
         //store picture in project
 
-            $store->category_id = Category::query()->where('name', $request->category)->first()->id;
-             $store->name = $request->name;
-             $store->description = $request->description;
-             $store->location = $request->location;
+             $store->category_id = Category::query()->where('name',$validator['category'])->first()->id;
+             $store->name = $validator['name'];
+             $store->description = $validator['description'];
+             $store->location_name = $validator['location_name'];
+             $store->location_url = $validator['location_url'];
              $store->save();
 
         return ResponseFormatter::success('The Store Updated Successfully',$store,200);
@@ -139,24 +142,24 @@ class StoreController extends Controller
     {
         // Get the list of store IDs from the request input
         $storeIds = $request->input('store_ids');
-    
+
         // Validate that store_ids is an array
         if (!is_array($storeIds)) {
             return ResponseFormatter::error('Store IDs must be provided as an array', null, 400);
         }
-    
+
         // If the array is empty, return an empty success response
         if (empty($storeIds)) {
             return ResponseFormatter::success('No Stores Found', [], 200);
         }
-    
+
         // Fetch stores by the provided IDs
         $stores = Store::whereIn('id', $storeIds)->get();
-    
+
         // Return the stores in a success response
         return ResponseFormatter::success('Stores retrieved successfully', $stores, 200);
     }
-    
+
     public function getStore($id)
     {
         $store = Store::query()->find($id);
@@ -177,7 +180,8 @@ class StoreController extends Controller
             'category_id' => $store->category_id,
             'name' => $store->name,
             'store_picture' => $store->store_picture,
-            'location' => $store->location,
+            'location_name' => $store->location_name,
+            'location_url' => $store->location_url,
             'description' => $store->description,
             'is_favorite' => $isFavorite,
             'rating' => $rating ?? null,

@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\ResponseFormatter;
 use App\Http\Middleware\JwtMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,5 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->renderable(function (AccessDeniedHttpException $e,$request) {
+            return ResponseFormatter::Error(
+                'You do not have permission to access this page.','',
+                403);
+        });
 
     })->create();

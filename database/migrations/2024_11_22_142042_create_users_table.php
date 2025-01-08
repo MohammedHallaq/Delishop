@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('phone_number')->unique();  // رقم الهاتف بدلاً من البريد الإلكتروني
             $table->timestamp('phone_verified_at')->nullable();  // تاريخ التحقق من رقم الهاتف
             $table->string('password');
+            $table->string('fcm_token')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

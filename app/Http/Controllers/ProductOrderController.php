@@ -20,7 +20,9 @@ class ProductOrderController extends Controller
             'products' => 'required|array',
             'products.*.product_id' => 'required|exists:products,id',
             'products.*.quantity' => 'required|numeric|min:1',
-            'location_id'=> 'required|exists:locations,id'
+            'location_id'=> 'required|exists:locations,id',
+            'store_id' => 'required|exists:stores,id',
+            'description' => 'nullable|string'
         ]);
 
         if ($validator->fails()) {
@@ -52,7 +54,9 @@ class ProductOrderController extends Controller
             'total_amount' => $totalAmount,
             'status' => 'pending',
             'order_date' => now(),
-            'location_id' => $request->location_id
+            'location_id' => $validator['location_id'],
+            'store_id' => $validator['store_id'],
+            'description' => $validator['description'],
         ]);
 
         // ربط المنتجات بالطلبية
@@ -84,11 +88,13 @@ class ProductOrderController extends Controller
         // البيانات للرد
         $data = [
             'order_id' => $order->id,
+            'store_id' => $order->store_id,
             'status' => $order->status,
             'order_date' => $order->order_date,
             'location_id' => $order->location_id,
             'content' => $productsData,
-            'total_amount' => $totalAmount
+            'total_amount' => $totalAmount,
+            'description' => $order->description,
         ];
 
         return ResponseFormatter::success('Order created successfully', $data,201);
@@ -245,6 +251,11 @@ class ProductOrderController extends Controller
         } else {
             return ResponseFormatter::error('Product not found in this order', null, 404);
         }
+    }
+    public function getOrderMyStore($store_id)
+    {
+        $order = Order::with('productsOrder')->where('store_id',$store_id)->get();
+        return ResponseFormatter::success('get my Orders successfully',$order,200);
     }
 
 

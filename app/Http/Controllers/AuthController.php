@@ -4,9 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
+use Spatie\Permission\Models\Role;
 
 class AuthController extends Controller
 {
@@ -32,11 +31,17 @@ class AuthController extends Controller
             'password' => bcrypt($validator['password']),
             'role_id' => 3,
         ]);
+        $clientRole = Role::query()->where('name','client')->first();
+        $user->assignRole($clientRole);
+        $permissions = $clientRole->permissions()->pluck('name')->toArray();
+        $user->givePermissionTo($permissions);
 
         $data = [
         'token' => auth('api')->login($user),
         'first_name' => $user->first_name ,
-        'last_name' => $user->last_name];
+        'last_name' => $user->last_name,
+         'role_id' => $user->role_id,];
+
         return ResponseFormatter::success('Logged in successfully',$data,201);
     }
 
@@ -82,6 +87,8 @@ class AuthController extends Controller
     {
         return $this->respondWithToken(auth('api')->refresh());
     }*/
+
+
 
 
 
