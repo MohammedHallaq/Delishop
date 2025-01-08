@@ -20,7 +20,8 @@ class StoreSeeder extends Seeder
                 'category_id' => $i,
                 'name' => 'Store ' . $i,
                 'store_picture' => 'http://127.0.0.1:8000/storage/uploads/'.$i.'.jpg',
-               'location' => 'location ' . $i,
+               'location_name' => 'location ' . $i,
+                'location_url' => 'https://maps.app.goo.gl/HWySp5hcUxEKFVmx9',
                'description' => 'Description ' . $i,
             ]);
         }
