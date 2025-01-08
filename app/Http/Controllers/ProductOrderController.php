@@ -28,6 +28,9 @@ class ProductOrderController extends Controller
         if ($validator->fails()) {
             return ResponseFormatter::error('Validation error', $validator->errors(), 422);
         }
+
+        $validatedData = $validator->validated();
+
         // حساب المجموع الكلي للطلبية
         $totalAmount = 0;
         $productsData = [];
@@ -54,9 +57,9 @@ class ProductOrderController extends Controller
             'total_amount' => $totalAmount,
             'status' => 'pending',
             'order_date' => now(),
-            'location_id' => $validator['location_id'],
-            'store_id' => $validator['store_id'],
-            'description' => $validator['description'],
+            'location_id' => $validatedData['location_id'],
+            'store_id' => $validatedData['store_id'],
+            'description' => $validatedData['description'],
         ]);
 
         // ربط المنتجات بالطلبية
