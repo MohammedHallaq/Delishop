@@ -105,13 +105,40 @@ class ProductOrderController extends Controller
 
     public function getUserOrders()
     {
-        $orders = Order::with('productsOrder')->where('user_id',Auth::id())->get();
-        if ($orders->isEmpty())
-            return ResponseFormatter::error('Orders not found', null,404);
-
-        return ResponseFormatter::success('Orders found', $orders,200);
-
+        $orders = Order::with('productsOrder')->where('user_id', Auth::id())->get();
+    
+        if ($orders->isEmpty()) {
+            return ResponseFormatter::error('Orders not found', null, 404);
+        }
+    
+        $modifiedOrders = $orders->map(function ($order) {
+            return [
+                'order_id' => $order->id,
+                'user_id' => $order->user_id,
+                'store_id' => $order->store_id,
+                'total_amount' => $order->total_amount,
+                'order_date' => $order->order_date,
+                'status' => $order->status,
+                'location_id' => $order->location_id,
+                'description' => $order->description,
+                'content' => $order->productsOrder->map(function ($product) {
+                    return [
+                        'id' => $product->id,
+                        'product_id' => $product->product_id,
+                        'order_id' => $product->order_id,
+                        'name' => $product->name,
+                        'price' => $product->price,
+                        'quantity' => $product->quantity,
+                        'subtotal' => (double)$product->subtotal, // I want this as double
+                    ];
+                }),
+            ];
+        });
+    
+        return ResponseFormatter::success('Orders found', $modifiedOrders, 200);
     }
+    
+
     public function updateStatusOrder(Request $request)
     {
         $validator = Validator::make($request->all(), [
