@@ -95,7 +95,7 @@ class ProductOrderController extends Controller
 
     public function getUserOrders()
     {
-        $orders = Order::with('productsOrder','location', 'store')->where('user_id', Auth::id())->get();
+        $orders = Order::with('productsOrder.product','location', 'store')->where('user_id', Auth::id())->get();
 
         if ($orders->isEmpty()) {
             return ResponseFormatter::error('Orders not found', null, 404);
