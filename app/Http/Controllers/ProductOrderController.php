@@ -87,14 +87,14 @@ class ProductOrderController extends Controller
 
 
         // البيانات للرد
-        $data = Order::with('productsOrder','location')->find($order->id);
+        $data = Order::with('productsOrder','location', 'store')->find($order->id);
 
         return ResponseFormatter::success('Order created successfully', $data,201);
     }
 
     public function getUserOrders()
     {
-        $orders = Order::with('productsOrder','location')->where('user_id', Auth::id())->get();
+        $orders = Order::with('productsOrder','location', 'store')->where('user_id', Auth::id())->get();
 
         if ($orders->isEmpty()) {
             return ResponseFormatter::error('Orders not found', null, 404);
