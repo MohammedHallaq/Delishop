@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Product;
+use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -103,8 +105,19 @@ class CategoryController extends Controller
             return ResponseFormatter::error('Not Found Categories',null,404);
         return  ResponseFormatter::success('The Categories Got Successfully',$categories,200);
     }
-    public function searchByCategory()
+    public function searchByCategory(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'category_id' => 'required|exists:categories,id',
+            'product_name' => 'required|string|max:255',
+        ]);
+        if ($validator->fails())
+            return ResponseFormatter::error("Validation Error",$validator->errors(),422);
+
+        $stores = Store::query()->where('category_id','LIKE','%'.$request['category_id'].'%')->get();
+        $product = Product::query()->whereIn('store_id',$stores->pluck('id'))->where('name','LIKE','%'.$request['product_name'].'%')->get();
+
+        return ResponseFormatter::success('searched successfully ',['stores'=>$stores,'products'=>$product],200);
 
     }
 

@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use function PHPUnit\Framework\isEmpty;
 
 class ProductController extends Controller
 {
@@ -113,21 +114,21 @@ class ProductController extends Controller
     {
         // Check if the store exists
         $store = Store::find($store_id);
-    
+
         if (!$store) {
             return ResponseFormatter::error('Store not found', null, 404);
         }
-    
+
         // Fetch products by store_id
         $products = Product::where('store_id', $store_id)->get();
-    
+
         if ($products->isEmpty()) {
             return ResponseFormatter::error('No products found for this store', [], 404);
         }
-    
+
         return ResponseFormatter::success('Products retrieved successfully', $products, 200);
     }
-    
+
     public function getProduct($id)
     {
         $product = Product::query()->with('store')->find($id);
@@ -186,6 +187,28 @@ class ProductController extends Controller
         }
 
         return ResponseFormatter::success('Products retrieved successfully', $products, 200);
+    }
+
+    public function getProductsByIds(Request $request)
+    {
+        // Get the list of store IDs from the request input
+        $productIds = $request->input('products_ids');
+
+        // Validate that store_ids is an array
+        if (!is_array($productIds)) {
+            return ResponseFormatter::error('product IDs must be provided as an array', null, 400);
+        }
+
+        // If the array is empty, return an empty success response
+        if (empty($productIds)) {
+            return ResponseFormatter::success('No Product Found', [], 200);
+        }
+
+        if (empty($request->input('products_ids')))
+            return ResponseFormatter::success('the products not found',[],404);
+
+        $products = Product::query()->whereIn('id',$request->input('products_ids'))->get();
+        return  ResponseFormatter::success('get Products successfully',$products,200);
     }
 
 

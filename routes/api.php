@@ -32,6 +32,7 @@ Route::group(['prefix'=>'categories'],function (){
     Route::post('update',[CategoryController::class,'update'])->name('category.update')->middleware('can:category.update');
     Route::delete('delete/{id}',[CategoryController::class,'delete'])->name('category.delete')->middleware('can:category.delete');
     Route::get('getCategories',[CategoryController::class,'getCategories'])->name('category.get')->middleware('can:category.get');
+    Route::post('search',[CategoryController::class,'searchByCategory'])->name('category.search');
 
 });
 Route::group(['prefix'=>'store'],function (){
@@ -50,6 +51,7 @@ Route::group(['prefix'=>'product'],function (){
     Route::get('getProductsByStore/{store_id}',[ProductController::class,'getProductsByStore'])->name('product.getByStore')->middleware('can:product.getByStore');
     Route::get('getProduct/{id}',[ProductController::class,'getProduct'])->name('product.get')->middleware('can:product.get');
     Route::post('search',[ProductController::class,'search'])->name('product.search')->middleware('can:product.search');
+    Route::post('getProductsByIds',[ProductController::class,'getProductsByIds'])->name('product.getByIds');
 
 });
 Route::group(['prefix'=>'favorite'],function (){
