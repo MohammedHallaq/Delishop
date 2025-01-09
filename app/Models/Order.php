@@ -12,7 +12,8 @@ class Order extends Model
         'status',
         'order_date',
         'location_id',
-        'store_id'
+        'store_id',
+        'description'
     ];
     public function user()
     {

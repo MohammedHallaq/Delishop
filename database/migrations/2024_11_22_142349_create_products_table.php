@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->string('product_picture')->nullable();
-            $table->decimal('price', 10, 2);
-            $table->decimal('discount', 5, 2)->default(0);
+            $table->double('price');
+            $table->double('discount')->default(0);
             $table->integer('quantity');
             $table->timestamps();
         });

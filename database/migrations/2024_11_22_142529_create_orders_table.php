@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('store_id')->constrained('stores')->cascadeOnDelete()->cascadeOnUpdate();
-            $table->decimal('total_amount', 10, 2);
+            $table->double('total_amount');
             $table->dateTime('order_date');
             $table->enum('status', ['pending', 'sent', 'completed', 'cancelled'])->default('pending');
             $table->foreignId('location_id')->constrained('locations')->cascadeOnDelete()->cascadeOnUpdate();

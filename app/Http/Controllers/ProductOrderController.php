@@ -22,7 +22,7 @@ class ProductOrderController extends Controller
             'products.*.quantity' => 'required|numeric|min:1',
             'location_id'=> 'required|exists:locations,id',
             'store_id' => 'required|exists:stores,id',
-            'description' => 'nullable|string'
+            'description' => 'required'
         ]);
 
         if ($validator->fails()) {

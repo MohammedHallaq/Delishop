@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('wallet_id')->constrained()->onDelete('cascade');
             $table->enum('transaction_type',['payment','deposit']);
-            $table->decimal('amount', 15, 2);
-            $table->decimal('balance_after_transaction', 15, 2);
+            $table->double('amount');
+            $table->double('balance_after_transaction');
             $table->timestamps();
         });
     }

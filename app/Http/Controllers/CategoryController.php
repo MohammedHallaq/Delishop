@@ -103,6 +103,10 @@ class CategoryController extends Controller
             return ResponseFormatter::error('Not Found Categories',null,404);
         return  ResponseFormatter::success('The Categories Got Successfully',$categories,200);
     }
+    public function searchByCategory()
+    {
+
+    }
 
 
 }
