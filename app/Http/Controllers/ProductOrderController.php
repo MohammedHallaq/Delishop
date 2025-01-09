@@ -116,7 +116,7 @@ class ProductOrderController extends Controller
                 'order_id' => $order->id,
                 'user_id' => $order->user_id,
                 'store_id' => $order->store_id,
-                'total_amount' => $order->total_amount,
+                'total_amount' =>(int) $order->total_amount,
                 'order_date' => $order->order_date,
                 'status' => $order->status,
                 'location_id' => $order->location_id,
