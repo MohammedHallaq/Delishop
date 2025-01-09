@@ -87,7 +87,8 @@ class ProductOrderController extends Controller
 
 
         // البيانات للرد
-        $data = Order::with('productsOrder','location', 'store')->find($order->id);
+        $data = Order::with('productsOrder.product','location', 'store')->find($order->id);
+
 
         return ResponseFormatter::success('Order created successfully', $data,201);
     }
