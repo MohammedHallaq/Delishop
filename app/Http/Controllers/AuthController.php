@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Profile;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Role;
 
@@ -35,6 +37,14 @@ class AuthController extends Controller
         $user->assignRole($clientRole);
         $permissions = $clientRole->permissions()->pluck('name')->toArray();
         $user->givePermissionTo($permissions);
+
+        Profile::query()->create([
+            'user_id'=>$user->id ,
+            'first_name'=>$user->first_name,
+            'last_name'=>$user->last_name,
+            'profile_picture'=>null,
+            'phone_number'=>$user->phone_number,
+        ]);
 
         $data = [
         'token' => auth('api')->login($user),

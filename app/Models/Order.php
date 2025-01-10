@@ -13,7 +13,8 @@ class Order extends Model
         'order_date',
         'location_id',
         'store_id',
-        'description'
+        'description',
+        'reject_reason'
     ];
     public function user()
     {
@@ -34,9 +35,5 @@ class Order extends Model
         return $this->belongsTo(Store::class);
 
     }
-//    public function product()
-//    {
-//        return $this->hasMany(Product::class);
-//    }
 
 }

@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Profile;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -146,6 +148,13 @@ class RolesAndPermissionsSeeder extends Seeder
             'phone_number' => '0936757771',
             'password' => Hash::make('Aa@54321'),
         ]);
+        Profile::query()->create([
+            'user_id'=>$superAdminUser ,
+            'first_name'=>$superAdminUser->first_name,
+            'last_name'=>$superAdminUser->last_name,
+            'profile_picture'=>null,
+            'phone_number'=>$superAdminUser->phone_number,
+        ]);
         $superAdminUser->assignRole($superAdminRole);
 
         // Assign permissions associated with the role to the user
@@ -160,6 +169,13 @@ class RolesAndPermissionsSeeder extends Seeder
             'phone_number' => '093675776' . $x,
             'password' => Hash::make('Aa@1234' . $x),
         ]);
+            Profile::query()->create([
+                'user_id'=>$adminUser->id ,
+                'first_name'=>$adminUser->first_name,
+                'last_name'=>$adminUser->last_name,
+                'profile_picture'=>null,
+                'phone_number'=>$adminUser->phone_number,
+            ]);
         $adminUser->assignRole($adminRole);
 
         // Assign permissions associated with the role to the user
@@ -173,6 +189,13 @@ class RolesAndPermissionsSeeder extends Seeder
                 'last_name' => 'User ' . $x,
                 'phone_number' => '093675775' . $x,
                 'password' => Hash::make('Aa@1234' . $x),
+            ]);
+            Profile::query()->create([
+                'user_id'=>$clientUser ,
+                'first_name'=>$clientUser->first_name,
+                'last_name'=>$clientUser->last_name,
+                'profile_picture'=>null,
+                'phone_number'=>$clientUser->phone_number,
             ]);
             $clientUser->assignRole($clientRole);
 

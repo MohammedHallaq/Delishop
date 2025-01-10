@@ -6,10 +6,12 @@ use App\Models\Profile;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class ProfileController extends Controller
 {
+    use StoreFileTrait;
 
     public function createProfile(Request $request)
     {
@@ -22,17 +24,21 @@ class ProfileController extends Controller
             return ResponseFormatter::error('Validation Error',$validator->errors(),422);
         }
         $user =User::query()->where('id',Auth::id())->first();
+        //store picture in project
+        $fileUrl = $this->store($request['profile_picture'], 'uploads');
+        // Create a new profile
         $profile = Profile::create([
+            'user_id'=>Auth::id() ,
             'first_name'=>$request->first_name,
             'last_name'=>$request->last_name,
-            'profile_picture'=>$request->profile_picture,
+            'profile_picture'=>$fileUrl,
             'phone_number'=>$user->phone_number,
         ]);
         return ResponseFormatter::success('The Profile created successfully',$profile,201);
     }
     public function getProfile()
     {
-        $profile = Profile::query()->where('id',Auth::id())->first();
+        $profile = Profile::query()->where('user_id',Auth::id())->first();
         return ResponseFormatter::success('The Profile created successfully',$profile,201);
     }
     public function updateProfile(Request $request)
@@ -41,16 +47,31 @@ class ProfileController extends Controller
             'first_name' => 'string|max:255',
             'last_name' => 'string|max:255',
             'profile_picture' => 'mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'phone_number' => 'regex:/^09\d{8}$/',
         ]);
         if ($validator->fails()) {
             return ResponseFormatter::error('Validation Error',$validator->errors(),422);
         }
-        $profile = Profile::query()->where('id',Auth::id())->first();
-        $profile->update([
-            'first_name'=>$request->first_name,
-            'last_name'=>$request->last_name,
-            'profile_picture'=>$request->profile_picture
-        ]);
+        $profile = Profile::query()->where('user_id',Auth::id())->first();
+
+        $profile->first_name=$request['first_name'];
+        $profile->last_name=$request['last_name'];
+        $profile->phone_number=$request['phone_number'];
+        if ($request->hasFile('profile_picture')) {
+            if ($profile->profile_picture) {
+                // حذف الصورة القديمة
+                $oldFilePath = str_replace(asset('storage/'), '', $profile->profile_picture);
+                if (Storage::disk('public')->exists($oldFilePath)) {
+                    Storage::disk('public')->delete($oldFilePath);
+                }
+            }
+
+            // رفع الصورة الجديدة
+            $fileUrl = $this->store($request->file('profile_picture'), 'uploads');
+            $profile->profile_picture = $fileUrl;
+        }
+        $profile->save();
+
         return ResponseFormatter::success('The Profile updated successfully',$profile,200);
     }
 }
