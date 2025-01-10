@@ -35,7 +35,7 @@ class ProductOrderController extends Controller
         foreach ($request['products'] as $product) {
             $productData = Product::query()->find($product['product_id']);
             if ($productData->quantity < $product['quantity'] ){
-                return ResponseFormatter::error('Quantity available for this product:  '.$productData->name.'  is  '.$productData->quantity,null,404);
+                return ResponseFormatter::error('Quantity available for this product:'.$productData->name.'is'.$productData->quantity,null,404);
             }
             $totalAmount += $productData->price * $product['quantity'];
 
@@ -112,7 +112,8 @@ class ProductOrderController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'status' => 'required|in:pending,sent,rejected,completed,cancelled',
-            'order_id'=>'required|exists:orders,id'
+            'order_id' => 'required|exists:orders,id',
+            'message'  => 'nullable'
         ]);
 
         if ($validator->fails()) {
@@ -125,75 +126,58 @@ class ProductOrderController extends Controller
             return ResponseFormatter::error('Order not found', null, 404);
         }
 
-        if ($order->status = $request['status']) {
-            return ResponseFormatter::success('this order updated status already', $order, 200);
+        // تحقق من أن الحالة الحالية تساوي الحالة المطلوبة
+        if ($order->status === $request['status']) {
+            return ResponseFormatter::success('This order already has the specified status', $order, 200);
         }
-        // إذا كانت حالة الطلب هي "مكتملة"، نقوم بتحديث الكميات
-        if ($request['status'] == 'completed' && $order->status == 'pending') {
-            // الحصول على جميع المنتجات المرتبطة بالطلب
-            $productsInOrder = ProductOrder::query()->where('order_id',$request['order_id'])->get();
+
+        // التحقق من الحركات المنطقية للحالة
+        $invalidTransitions = [
+            'completed' => ['cancelled', 'rejected', 'sent'],
+            'cancelled' => ['completed', 'rejected', 'sent'],
+            'rejected' => ['cancelled', 'completed', 'sent'],
+            'sent' => ['cancelled', 'rejected', 'pending'],
+            'pending' => ['cancelled', 'rejected', 'sent', 'completed'],
+        ];
+
+        if (isset($invalidTransitions[$request['status']]) &&
+            in_array($order->status, $invalidTransitions[$request['status']])) {
+            return ResponseFormatter::error(
+                "Invalid transition: Cannot change status from {$order->status} to {$request['status']}",
+                null,
+                422
+            );
+        }
+
+        // تحديث الحالة
+        $order->status = $request['status'];
+        $order->save();
+
+        // إذا كانت الحالة مكتملة، قم بتحديث كميات المنتجات
+        if ($order->status === 'completed') {
+            $productsInOrder = ProductOrder::where('order_id', $request['order_id'])->get();
 
             foreach ($productsInOrder as $productOrder) {
-                $product = Product::query()->find($productOrder->product_id);
+                $product = Product::find($productOrder->product_id);
                 if ($product) {
-                    // تقليص الكمية بناءً على الكمية المطلوبة في الطلب
                     $product->quantity -= $productOrder->quantity;
                     $product->save();
                 }
             }
-            $order->status = 'completed';
-            $order->save();
-        }
-        if ($request['status'] == 'cancelled') {
-            if ($order->status == 'completed' || $order->status == 'sent' || $order->status == 'rejected') {
-                return ResponseFormatter::success('The order must be pending before you can cancel it', $order, 200);
-            }
         }
 
-
-
-        // إذا كانت حالة الطلب هي "محذوف"، نقوم بتحديث الكميات
-        if ( $request['status'] == 'cancelled' && $order->status == 'pending' ) {
-           /* // الحصول على جميع المنتجات المرتبطة بالطلب
-            $productsInOrder = ProductOrder::query()->where('order_id',$request['order_id'])->get();
-
-            foreach ($productsInOrder as $productOrder) {
-                $product = Product::query()->find($productOrder->product_id);
-                if ($product) {
-                    // زيادة الكمية بناءً على الكمية المطلوبة في الطلب
-                    $product->quantity += $productOrder->quantity;
-                    $product->save();
-                }
-            }*/
-            //اعادة المبلغ الى المحفطة
-            $wallet = Wallet::query()->where('user_id',$order->user_id)->first();
+        if ($order->status === 'cancelled'){
+            $wallet = Wallet::query()->where('user_id',Auth::id())->first();
             $wallet->balance += $order->total_amount;
             $wallet->save();
-            $order->status = 'cancelled';
-            $order->save();
         }
-
-
-        if ($request['status'] == 'sent' && $order->status == 'completed'){
-            $order->status = 'sent';
-            $order->save();
-
-        }
-
-        if ($request['status'] == 'rejected' && $order->status == 'pending'){
-            $order->status = 'rejected';
-            $order->reject_reason =$request->input('reject_reason');
-            $order->save();
-        }
-
-
-        $order = Order::with('productsOrder')->find($request['order_id']);
 
 
         return ResponseFormatter::success('Order status updated successfully', $order, 200);
     }
 
-    public function addProductToOrder(Request $request)
+
+    /*public function addProductToOrder(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'order_id' => 'required|exists:orders,id',
@@ -271,7 +255,7 @@ class ProductOrderController extends Controller
         } else {
             return ResponseFormatter::error('Product not found in this order', null, 404);
         }
-    }
+    }*/
     public function getOrderMyStore($store_id)
     {
         $order = Order::with('productsOrder')->where('store_id',$store_id)->get();

@@ -64,6 +64,9 @@ class ProfileController extends Controller
         }
         if ($request->filled('phone_number')) {
             $profile->phone_number = $request->input('phone_number');
+            $user=User::query()->where('id',Auth::id())->first();
+            $user->phone_number=$request->input('phone_number');
+            $user->save();
         }
 
         if ($request->hasFile('profile_picture')) {

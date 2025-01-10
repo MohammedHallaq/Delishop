@@ -17,8 +17,7 @@ class ProductController extends Controller
     use StoreFileTrait;
    public function create(Request $request)
    {
-       $user_id= Auth::id();
-       $store = Store::query()->where('user_id',$user_id)->first();
+       $store = Store::query()->where('user_id',Auth::id())->first();
        if (is_null($store) )
            return ResponseFormatter::error('This user has no permission to create product', 'Access denied', 403);
 
@@ -33,24 +32,35 @@ class ProductController extends Controller
        if ($validator->fails())
            return ResponseFormatter::error('Validation Error',$validator->errors(),422);
        $fileUrl = $this->store($request['product_picture'], 'uploads');
-       $product = Product::create([
+       $product = Product::query()->create([
            'store_id' => $store->id,
-           'name' => $request->name,
+           'name' => $request['name'],
            'product_picture' =>$fileUrl,
-           'description' => $request->description,
-           'price' => $request->price,
-           'discount' => $request->discount,
-           'quantity' => $request->quantity
+           'description' => $request['description'],
+           'price' => $request['price'],
+           'discount' => $request['discount'],
+           'quantity' => $request['quantity']
        ]);
        return  ResponseFormatter::success('The product created successfully', $product, 201);
    }
     public function update(Request $request)
     {
-        $user_id= Auth::id();
+        $validator = Validator::make($request->all(),[
+            'name' => 'nullable|string|unique:products,name',
+            'product_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'description' => 'nullable|string|max:255',
+            'price' => 'nullable|numeric',
+            'discount' => 'nullable|numeric',
+            'quantity' => 'nullable|numeric',
+            'product_id' => 'required|exists:products,id'
+        ]);
 
-        $store = Store::query()->where('user_id',$user_id)->first();
+        if ($validator->fails())
+            return ResponseFormatter::error('Validation Error',$validator->errors(),422);
 
-        $product =Product::query()->find($request->id);
+        $store = Store::query()->where('user_id',Auth::id())->first();
+
+        $product =Product::query()->find($request['product_id']);
 
         if (is_null($product))
             return ResponseFormatter::error('The Product Not Found',null,404);
@@ -58,17 +68,6 @@ class ProductController extends Controller
         if (is_null($store) || $store->id != $product->store_id )
             return ResponseFormatter::error('This user has no permission to update product', 'Access denied', 403);
 
-        $validator = Validator::make($request->all(),[
-            'name' => 'required|string|unique:products,name',
-            'product_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'description' => 'required|string|max:255',
-            'price' => 'required|numeric',
-            'discount' => 'numeric',
-            'quantity' => 'required|numeric',
-            'id' => 'required'
-        ]);
-        if ($validator->fails())
-            return ResponseFormatter::error('Validation Error',$validator->errors(),422);
 
         if ($request->hasFile('product_picture')) {
             if ($product->product_picture) {
@@ -83,20 +82,30 @@ class ProductController extends Controller
             $fileUrl = $this->store($request->file('product_picture'), 'uploads');
             $product->product_picture = $fileUrl;
         }
+        if ($request->filled('name')){
+            $product->name = $request->input('name');
+        }
+        if ($request->filled('description')){
+            $product->description = $request->input('description');
+        }
+        if ($request->filled('price')){
+            $product->price = $request->input('price');
+        }
+        if ($request->filled('discount')){
+            $product->discount = $request->input('discount');
+        }
+        if ($request->filled('quantity')){
+            $product->quantity = $request->input('quantity');
+        }
 
-        $product->name = $request->name;
-        $product->description = $request->description;
-        $product->price = $request->price;
-        $product->discount = $request->discount;
-        $product->quantity = $request->quantity;
         $product->save();
         return  ResponseFormatter::success('The product updated successfully', $product, 200);
     }
     public function delete($id)
     {
-        $user_id = Auth::id();
 
-        $store = Store::query()->where('user_id',$user_id)->first();
+
+        $store = Store::query()->where('user_id',Auth::id())->first();
 
         $product = Product::query()->find($id);
 
@@ -105,7 +114,11 @@ class ProductController extends Controller
 
         if (is_null($store)  || $store->id != $product->store_id )
             return ResponseFormatter::error('This user has no permission to delete product', 'Access denied', 403);
-
+        // حذف الصورة القديمة
+        $oldFilePath = str_replace(asset('storage/'), '',$product->product_picture);
+        if (Storage::disk('public')->exists($oldFilePath)) {
+            Storage::disk('public')->delete($oldFilePath);
+        }
         $product->delete();
 
         return ResponseFormatter::success('The Product Deleted Successfully',$product,200);

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'sent', 'completed', 'cancelled','rejected'])->default('pending');
             $table->foreignId('location_id')->nullable()->constrained('locations')->nullOnDelete()->cascadeOnUpdate();
             $table->text('description')->nullable();
-            $table->text('reject_reason')->nullable();
+            $table->text('message')->nullable();
             $table->timestamps();
         });
     }

@@ -14,7 +14,7 @@ class Order extends Model
         'location_id',
         'store_id',
         'description',
-        'reject_reason'
+        'message'
     ];
     public function user()
     {
