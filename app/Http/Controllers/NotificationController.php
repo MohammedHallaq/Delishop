@@ -16,7 +16,7 @@ class NotificationController extends Controller
     }
 
 
-    public function send($user, $title, $message, $type = 'basic')
+    public function send ($user, $title, $body )
     {
         // Path to the service account key JSON file
         $serviceAccountPath = storage_path('app/firebase_service_account.json');
@@ -30,15 +30,14 @@ class NotificationController extends Controller
         // Prepare the notification array
         $notification = [
             'title' => $title,
-            'body' => $message,
+            'body' => $body,
             'sound' => 'default',
         ];
 
         // Additional data payload
         $data = [
-            'type' => $type,
             'id' => $user['id'],
-            'message' => $message,
+            'message' => $body,
         ];
 
         // Create the CloudMessage instance
@@ -57,7 +56,7 @@ class NotificationController extends Controller
                 'notifiable_id' => $user['id'],
                 'data' => json_encode([
                     'user' => $user['first_name'] . ' ' . $user['last_name'],
-                    'message' => $message,
+                    'message' => $body,
                     'title' => $title,
                 ]), // The data of the notification
             ]);

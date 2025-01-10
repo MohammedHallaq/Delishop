@@ -18,7 +18,7 @@ return new class extends Migration
             $table->double('total_amount');
             $table->dateTime('order_date');
             $table->enum('status', ['pending', 'sent', 'completed', 'cancelled'])->default('pending');
-            $table->foreignId('location_id')->constrained('locations')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('location_id')->nullable()->constrained('locations')->nullOnDelete()->cascadeOnUpdate();
             $table->text('description')->nullable();
             $table->timestamps();
         });
