@@ -107,15 +107,15 @@ class CategoryController extends Controller
     }
     public function searchByCategory(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'category_id' => 'required|exists:categories,id',
-            'product_name' => 'required|string|max:255',
-        ]);
-        if ($validator->fails())
-            return ResponseFormatter::error("Validation Error",$validator->errors(),422);
-
-        $stores = Store::query()->where('category_id','LIKE','%'.$request['category_id'].'%')->get();
-        $product = Product::query()->whereIn('store_id',$stores->pluck('id'))->where('name','LIKE','%'.$request['product_name'].'%')->get();
+        $category_id = $request->input('category_id');
+        $keyword= $request->input('keyword');
+        if ($category_id == null ){
+           $stores = Store::query()->where('name','LIKE','%'.$keyword.'%')->get();
+           $products = Product::query()->where('name','LIKE','%'.$keyword.'%')->get();
+           return ResponseFormatter::success('searched successfully',['stores'=>$stores,'products'=>$products],200);
+        }
+        $stores = Store::query()->where('category_id',$category_id)->get();
+        $product = Product::query()->whereIn('store_id',$stores->pluck('id'))->where('name','LIKE','%'.$keyword.'%')->get();
 
         return ResponseFormatter::success('searched successfully ',['stores'=>$stores,'products'=>$product],200);
 
