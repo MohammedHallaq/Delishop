@@ -44,22 +44,31 @@ class ProfileController extends Controller
     public function updateProfile(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'first_name' => 'string|max:255',
-            'last_name' => 'string|max:255',
-            'profile_picture' => 'mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'phone_number' => 'regex:/^09\d{8}$/',
+            'first_name' => 'nullable|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'phone_number' => 'nullable|regex:/^09\d{8}$/',
         ]);
-        if ($validator->fails()) {
-            return ResponseFormatter::error('Validation Error',$validator->errors(),422);
-        }
-        $profile = Profile::query()->where('user_id',Auth::id())->first();
 
-        $profile->first_name=$request['first_name'];
-        $profile->last_name=$request['last_name'];
-        $profile->phone_number=$request['phone_number'];
+        if ($validator->fails()) {
+            return ResponseFormatter::error('Validation Error', $validator->errors(), 422);
+        }
+
+        $profile = Profile::query()->where('user_id', Auth::id())->first();
+
+        if ($request->filled('first_name')) {
+            $profile->first_name = $request->input('first_name');
+        }
+        if ($request->filled('last_name')) {
+            $profile->last_name = $request->input('last_name');
+        }
+        if ($request->filled('phone_number')) {
+            $profile->phone_number = $request->input('phone_number');
+        }
+
         if ($request->hasFile('profile_picture')) {
+
             if ($profile->profile_picture) {
-                // حذف الصورة القديمة
                 $oldFilePath = str_replace(asset('storage/'), '', $profile->profile_picture);
                 if (Storage::disk('public')->exists($oldFilePath)) {
                     Storage::disk('public')->delete($oldFilePath);
@@ -70,8 +79,11 @@ class ProfileController extends Controller
             $fileUrl = $this->store($request->file('profile_picture'), 'uploads');
             $profile->profile_picture = $fileUrl;
         }
+
+        // حفظ التغييرات
         $profile->save();
 
-        return ResponseFormatter::success('The Profile updated successfully',$profile,200);
+        return ResponseFormatter::success('The Profile updated successfully', $profile, 200);
     }
+
 }
