@@ -149,7 +149,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'password' => Hash::make('Aa@54321'),
         ]);
         Profile::query()->create([
-            'user_id'=>$superAdminUser ,
+            'user_id'=>$superAdminUser->id ,
             'first_name'=>$superAdminUser->first_name,
             'last_name'=>$superAdminUser->last_name,
             'profile_picture'=>null,
@@ -191,7 +191,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'password' => Hash::make('Aa@1234' . $x),
             ]);
             Profile::query()->create([
-                'user_id'=>$clientUser ,
+                'user_id'=>$clientUser->id ,
                 'first_name'=>$clientUser->first_name,
                 'last_name'=>$clientUser->last_name,
                 'profile_picture'=>null,
