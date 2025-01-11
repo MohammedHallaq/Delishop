@@ -25,7 +25,7 @@ class ProfileController extends Controller
         }
         $user =User::query()->where('id',Auth::id())->first();
         //store picture in project
-        $fileUrl = $this->store($request['profile_picture'], 'uploads');
+        $fileUrl = $this->storePicture($request['profile_picture'], 'uploads');
         // Create a new profile
         $profile = Profile::create([
             'user_id'=>Auth::id() ,
@@ -70,16 +70,7 @@ class ProfileController extends Controller
         }
 
         if ($request->hasFile('profile_picture')) {
-
-            if ($profile->profile_picture) {
-                $oldFilePath = str_replace(asset('storage/'), '', $profile->profile_picture);
-                if (Storage::disk('public')->exists($oldFilePath)) {
-                    Storage::disk('public')->delete($oldFilePath);
-                }
-            }
-
-            // رفع الصورة الجديدة
-            $fileUrl = $this->store($request->file('profile_picture'), 'uploads');
+            $fileUrl = $this->updatePicture($request['profile_picture'],$profile->profile_picture);
             $profile->profile_picture = $fileUrl;
         }
 
