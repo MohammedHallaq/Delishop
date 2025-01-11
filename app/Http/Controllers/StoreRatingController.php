@@ -16,10 +16,13 @@ class StoreRatingController extends Controller
             'store_id' => 'required|exists:stores,id',
             'comment' => 'required|string|max:255',
         ]);
-        if ($validator->fails())
+        if ($validator->fails()) {
             return ResponseFormatter::error('Validation Error', $validator->errors(), 422);
-
-        $rating = StoreRating::create([
+        }
+        if ($rating=StoreRating::query()->where('user_id',Auth::id())->first()){
+            return ResponseFormatter::success('You cannot add a new rating',$rating,422);
+        }
+        $rating = StoreRating::query()->create([
             'user_id' => Auth::id(),
             'store_id' => $request->input('store_id'),
             'rating' => $request->input('rating'),
@@ -32,45 +35,49 @@ class StoreRatingController extends Controller
         $ratingsStore = StoreRating::query()->where('user_id',Auth::id())->get();
         return ResponseFormatter::success('Get My Rating successfully',$ratingsStore,200);
     }
-    public function getRatings($id_store)
+    public function getRatings($store_id)
     {
-        $store = Store::query()->find($id_store);
+        $store = Store::query()->find($store_id);
         if (is_null($store))
             return ResponseFormatter::error('Store not found',null ,404);
 
-        $rating = StoreRating::query()->where('store_id', $id_store)->get();
+        $rating = StoreRating::query()->where('store_id', $store_id)->get();
         return ResponseFormatter::success('Get Rating Successful', $rating,200);
     }
 
     public function updateRating(Request $request)
     {
-        $user_id = Auth::id();
-        $rating = StoreRating::query()->find($request->input('id'));
-        if (is_null($rating))
-            return ResponseFormatter::error(' Rating not found',null ,404);
-        if ($rating->user_id != $user_id)
-            return ResponseFormatter::error('The user has no permission to edit',null ,403);
         $validator = Validator::make($request->all(), [
-            'rating' => 'required|numeric|min:1|max:5',
-            'comment' => 'required|string|max:255',
-            'id' => 'required|exists:store_ratings,id',
+            'rating' => 'nullable|numeric|min:1|max:5',
+            'comment' => 'nullable|string|max:255',
+            'rating_id' => 'required|exists:store_ratings,id',
         ]);
-        if ($validator->fails())
+        if ($validator->fails()) {
             return ResponseFormatter::error('Validation Error', $validator->errors(), 422);
-
-        $rating->rating = $request->input('rating');
-        $rating->comment = $request->input('comment');
+        }
+        $rating = StoreRating::query()->find($request->input('rating_id'));
+        if (is_null($rating)) {
+            return ResponseFormatter::error(' Rating not found', null, 404);
+        }
+        if ($rating->user_id != Auth::id()) {
+            return ResponseFormatter::error('The user has no permission to edit', null, 403);
+        }
+        if ($request->filled('rating')){
+            $rating->rating = $request->input('rating');
+        }
+       if ($request->filled('comment')){
+           $rating->comment = $request->input('comment');
+       }
         $rating->save();
-        return ResponseFormatter::success('Update Rating Successful', $rating,200);
 
+        return ResponseFormatter::success('Update Rating Successful', $rating,200);
     }
-    public function deleteRating($id_rating)
+    public function deleteRating($rating_id)
     {
-        $user_id = Auth::id();
-        $rating = StoreRating::query()->find($id_rating);
+        $rating = StoreRating::query()->find($rating_id);
         if (is_null($rating))
             return ResponseFormatter::error(' Rating not found',null ,404);
-        if ($rating->user_id != $user_id)
+        if ($rating->user_id != Auth::id())
             return ResponseFormatter::error('The user has no permission to delete',null ,403);
 
         $rating->delete();
