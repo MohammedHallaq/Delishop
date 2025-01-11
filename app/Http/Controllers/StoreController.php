@@ -9,7 +9,6 @@ use App\Models\StoreRating;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class StoreController extends Controller
@@ -33,30 +32,21 @@ class StoreController extends Controller
            return ResponseFormatter::error('Validation Error', $validator->errors(), 422);
        }
        //store picture in project
-       $fileUrl = $this->store($validator['store_picture'], 'uploads');
+       $fileUrl = $this->storePicture($request['store_picture'], 'uploads');
        $store = Store::query()->create([
-           'user_id' => User::query()->where('phone_number', $validator['phone_number'])->first()->id,
-           'category_id' => Category::query()->where('name', $validator['category'])->first()->id,
-           'name' => $validator['name'],
+           'user_id' => User::query()->where('phone_number', $request['phone_number'])->first()->id,
+           'category_id' => Category::query()->where('name', $request['category'])->first()->id,
+           'name' => $request['name'],
            'store_picture' => $fileUrl,
-           'description' => $validator['description'],
-           'location_name' => $validator['location_name'],
-           'location_url' => $validator['location_url'],
+           'description' => $request['description'],
+           'location_name' => $request['location_name'],
+           'location_url' => $request['location_url'],
        ]);
        return ResponseFormatter::success('The Store Created Successfully',$store,201);
    }
 
     public function update(Request $request)
     {
-        $store = Store::query()->find($request->id);
-        if (is_null($store))
-            return ResponseFormatter::error('The Store Not Found',null,404);
-
-        $user_id=Auth::id();
-
-        if ($user_id!=$store->user_id)
-            return ResponseFormatter::error('This user has no permission to edit',null,403);
-
         $validator = Validator::make($request->all(), [
             'name' => 'unique:stores,name',
             'store_picture' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -69,27 +59,36 @@ class StoreController extends Controller
         if ($validator->fails()) {
             return ResponseFormatter::error('Validation Error', $validator->errors(), 422);
         }
+
+        $store = Store::query()->find($request->input('id'));
+        if (is_null($store))
+            return ResponseFormatter::error('The Store Not Found',null,404);
+
+
+        if (Auth::id()!=$store->user_id)
+            return ResponseFormatter::error('This user has no permission to edit',null,403);
+
+
         if ($request->hasFile('store_picture')) {
-            if ($store->store_picture) {
-                // حذف الصورة القديمة
-                $oldFilePath = str_replace(asset('storage/'), '',$store->store_picture);
-                if (Storage::disk('public')->exists($oldFilePath)) {
-                    Storage::disk('public')->delete($oldFilePath);
-                }
-            }
-
-            // رفع الصورة الجديدة
-            $fileUrl = $this->store($request->file('store_picture'), 'uploads');
-            $store->store_picture = $fileUrl;
+            $newPath=$this->updatePicture($request['store_picture'],$store->store_picture);
+            $store->store_picture  = $newPath ;
         }
-        //store picture in project
-
-             $store->category_id = Category::query()->where('name',$validator['category'])->first()->id;
-             $store->name = $validator['name'];
-             $store->description = $validator['description'];
-             $store->location_name = $validator['location_name'];
-             $store->location_url = $validator['location_url'];
-             $store->save();
+        if ($request->filled('category')){
+            $store->category_id = Category::query()->where('name',$request['category'])->first()->id;
+        }
+        if ($request->filled('name')){
+            $store->name = $request['name'];
+        }
+        if ($request->filled('description')){
+            $store->description = $request['description'];
+        }
+        if ($request->filled('location_name')){
+            $store->location_name = $request['location_name'];
+        }
+        if ($request->filled('location_url')){
+            $store->location_url = $request['location_url'];
+        }
+        $store->save();
 
         return ResponseFormatter::success('The Store Updated Successfully',$store,200);
     }
@@ -98,15 +97,10 @@ class StoreController extends Controller
         $store = Store::query()->find($id);
         if (is_null($store))
             return ResponseFormatter::error('The Store Not Found',null,404);
-        $user_id = Auth::id();
-        if ($user_id!=$store->user_id)
+        if (Auth::id() != $store->user_id)
             return ResponseFormatter::error('This user has no permission to delete',null,403);
         if ($store->store_picture) {
-                // حذف الصورة القديمة
-                $oldFilePath = str_replace(asset('storage/'), '',$store->store_picture);
-                if (Storage::disk('public')->exists($oldFilePath)) {
-                    Storage::disk('public')->delete($oldFilePath);
-                }
+            $this->destroyPicture($store->store_picture);
         }
         $store->delete();
         return ResponseFormatter::success('The Store Deleted Successfully',$store,200);

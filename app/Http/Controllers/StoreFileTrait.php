@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 
 trait StoreFileTrait
 {
-    static function store($file, $location): string
+    static function storePicture($file, $location)
     {
-        // تأكد من أن $file هو كائن UploadedFile
         if (!$file instanceof UploadedFile) {
             throw new \InvalidArgumentException('The provided file is not valid.');
         }
@@ -17,18 +17,35 @@ trait StoreFileTrait
         // إنشاء اسم ملف فريد
         $fileNameToStore = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
-       /* // تخزين الملف في الموقع المحدد ضمن التخزين العام
-        $file->storeAs($location, $fileNameToStore, 'public');
+        $file->move(public_path('storage/'.$location), $fileNameToStore);
 
-        // إرجاع الرابط الكامل للملف
-        $publicUrl = asset('storage/' . $location . '/' . $fileNameToStore);*/
-
-         // Store the uploaded file directly in public/storage/uploads
-         $path = $file->move(public_path('storage/uploads'), $fileNameToStore);
-
-// Generate the URL for the uploaded file
-       return $url = url('storage/uploads/'.$fileNameToStore);
+       return  url('storage/uploads/'.$fileNameToStore);
 
 
     }
+    public  function destroyPicture($oldFilePath)
+    {
+        // تحويل الرابط الكامل إلى مسار داخل المجلد العام
+        $relativePath = str_replace(url('storage/uploads') . '/', '', $oldFilePath);
+        $absolutePath = public_path('storage/uploads/' . $relativePath);
+
+        // التحقق من وجود الملف وحذفه
+        if (File::exists($absolutePath)) {
+            File::delete($absolutePath);
+        }
+
+    }
+
+    public function updatePicture( $file, $oldFilePath)
+    {
+        // حذف الملف القديم إذا وُجد
+        // حذف الملف القديم إذا كان موجودًا
+        if ($oldFilePath) {
+            self::destroyPicture($oldFilePath);
+        }
+
+        return self::storePicture($file, 'uploads');
+    }
+
+
 }

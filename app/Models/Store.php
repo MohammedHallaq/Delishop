@@ -12,7 +12,9 @@ class Store extends Model
         'name',
         'store_picture',
         'description',
-        'location'
+        'location_name',
+        'location_url'
+
     ];
     public function user()
     {

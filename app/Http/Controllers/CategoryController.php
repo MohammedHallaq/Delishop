@@ -7,7 +7,6 @@ use App\Models\Product;
 use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
 
 
 class CategoryController extends Controller
@@ -25,10 +24,10 @@ class CategoryController extends Controller
             return ResponseFormatter::error("Validation Error",$validator->errors(),422);
 
         //store picture in project
-        $fileUrl = $this->store($request['category_picture'], 'uploads');
+        $fileUrl = $this->storePicture($request['category_picture'], 'uploads');
         // Create a new category
-        $category = Category::create([
-            'name' => $request->name,
+        $category = Category::query()->create([
+            'name' => $request['name'],
             'category_picture'=> $fileUrl
         ]);
 
@@ -39,15 +38,8 @@ class CategoryController extends Controller
     }
     public function update(Request $request)
     {
-        // البحث عن التصنيف المطلوب
-        $category = Category::query()->find($request->id);
-        if (is_null($category)) {
-            return ResponseFormatter::error('The Category Not Found', null,404);
-        }
-
-        // التحقق من صحة البيانات
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:categories,name',
+            'name' => 'nullable|string|max:255|unique:categories,name',
             'category_picture' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'id' => 'required|exists:categories,id',
         ]);
@@ -55,27 +47,20 @@ class CategoryController extends Controller
         if ($validator->fails()) {
             return ResponseFormatter::error("Validation Error", $validator->errors());
         }
-
-        // تحديث الاسم إذا تم إرساله
-        if ($request->has('name')) {
-            $category->name = $request->name;
+        // البحث عن التصنيف المطلوب
+        $category = Category::query()->find($request['id']);
+        if (is_null($category)) {
+            return ResponseFormatter::error('The Category Not Found', null,404);
         }
-
+        // تحديث الاسم إذا تم إرساله
+        if ($request->filled('name')) {
+            $category->name = $request['name'];
+        }
         // تحديث الصورة إذا تم إرسال ملف جديد
         if ($request->hasFile('category_picture')) {
-            if ($category->category_picture) {
-                // حذف الصورة القديمة
-                $oldFilePath = str_replace(asset('storage/'), '', $category->category_picture);
-                if (Storage::disk('public')->exists($oldFilePath)) {
-                    Storage::disk('public')->delete($oldFilePath);
-                }
-            }
-
-            // رفع الصورة الجديدة
-            $fileUrl = $this->store($request->file('category_picture'), 'uploads');
+            $fileUrl = $this->updatePicture($request['category_picture'],$category->category_picture);
             $category->category_picture = $fileUrl;
         }
-
         // حفظ التحديثات
         $category->save();
 
@@ -89,11 +74,7 @@ class CategoryController extends Controller
             return ResponseFormatter::error('The Category Not Found',null);
         }
         if ($category->category_picture) {
-            // حذف الصورة القديمة
-            $oldFilePath = str_replace(asset('storage/'), '', $category->category_picture);
-            if (Storage::disk('public')->exists($oldFilePath)) {
-                Storage::disk('public')->delete($oldFilePath);
-            }
+           $this->destroyPicture($category->category_picture);
         }
         $category->delete();
         return ResponseFormatter::success('The Category Deleted Successfully',$category);
@@ -101,8 +82,9 @@ class CategoryController extends Controller
     public function getCategories()
     {
         $categories=Category::query()->latest()->get();
-        if ($categories->isEmpty())
+        if ($categories->isEmpty()){
             return ResponseFormatter::error('Not Found Categories',null,404);
+        }
         return  ResponseFormatter::success('The Categories Got Successfully',$categories,200);
     }
     public function searchByCategory(Request $request)

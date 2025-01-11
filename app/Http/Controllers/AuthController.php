@@ -24,13 +24,12 @@ class AuthController extends Controller
 
         if ($validator->fails())
             return ResponseFormatter::error('Validation error', $validator->errors(), 422);
-        $validator=$validator->validated();
         // إنشاء المستخدم الجديد
-        $user = User::create([
-            'first_name' => $validator['first_name'],
-            'last_name' => $validator['last_name'],
-            'phone_number' => $validator['phone_number'],
-            'password' => bcrypt($validator['password']),
+        $user = User::query()->create([
+            'first_name' => $request['first_name'],
+            'last_name' => $request['last_name'],
+            'phone_number' => $request['phone_number'],
+            'password' => bcrypt($request['password']),
             'role_id' => 3,
         ]);
         $clientRole = Role::query()->where('name','client')->first();

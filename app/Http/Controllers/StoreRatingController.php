@@ -55,7 +55,7 @@ class StoreRatingController extends Controller
         if ($validator->fails()) {
             return ResponseFormatter::error('Validation Error', $validator->errors(), 422);
         }
-        $rating = StoreRating::query()->find($request->input('rating_id'));
+        $rating = StoreRating::query()->find($request['rating_id']);
         if (is_null($rating)) {
             return ResponseFormatter::error(' Rating not found', null, 404);
         }
