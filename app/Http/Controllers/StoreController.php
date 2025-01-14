@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Favorite;
+use App\Models\Keyword;
 use App\Models\Store;
 use App\Models\StoreRating;
 use App\Models\User;
@@ -26,7 +27,6 @@ class StoreController extends Controller
            'location_name' => 'required',
            'location_url' => 'required|url',
            'category' => 'required|exists:categories,name',
-           'phone_number' => 'required|exists:users,phone_number',
        ]);
        if ($validator->fails()) {
            return ResponseFormatter::error('Validation Error', $validator->errors(), 422);
@@ -34,7 +34,7 @@ class StoreController extends Controller
        //store picture in project
        $fileUrl = $this->storePicture($request['store_picture'], 'uploads');
        $store = Store::query()->create([
-           'user_id' => User::query()->where('phone_number', $request['phone_number'])->first()->id,
+           'user_id' => Auth::id(),
            'category_id' => Category::query()->where('name', $request['category'])->first()->id,
            'name' => $request['name'],
            'store_picture' => $fileUrl,
@@ -42,6 +42,12 @@ class StoreController extends Controller
            'location_name' => $request['location_name'],
            'location_url' => $request['location_url'],
        ]);
+       $keyword = Keyword::query()->where('keyword',$request['name'])->pluck('user_id')->toArray();
+       $users = User::query()->whereIn('id',$keyword)->get();
+       foreach ($users as $user){
+           ( new NotificationController )->sendNotification($user,'New Store','Dear'.$user->first_name.'the store you
+           previously searched for has been added',$store);
+       }
        return ResponseFormatter::success('The Store Created Successfully',$store,201);
    }
 
@@ -90,6 +96,8 @@ class StoreController extends Controller
         }
         $store->save();
 
+
+
         return ResponseFormatter::success('The Store Updated Successfully',$store,200);
     }
     public function delete($id)
@@ -102,6 +110,7 @@ class StoreController extends Controller
         if ($store->store_picture) {
             $this->destroyPicture($store->store_picture);
         }
+
         $store->delete();
         return ResponseFormatter::success('The Store Deleted Successfully',$store,200);
 
@@ -160,12 +169,12 @@ class StoreController extends Controller
         if (is_null($store))
             return ResponseFormatter::error('The Store Not Found',null,404);
         // التحقق مما إذا كان المتجر موجوداً في المفضلة
-        $isFavorite = Favorite::where('user_id', $store->user_id)
+        $isFavorite = Favorite::query()->where('user_id', $store->user_id)
             ->where('product_id', $id)
             ->exists();
 
         // الحصول على متوسط تقييمات المتجر
-        $rating = StoreRating::where('store_id', $id)->avg('rating');
+        $rating = StoreRating::query()->where('store_id', $id)->avg('rating');
 
         // تشكيل البيانات للخروج
         $data = [

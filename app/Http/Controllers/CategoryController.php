@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Keyword;
 use App\Models\Product;
 use App\Models\Store;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 
@@ -65,7 +67,7 @@ class CategoryController extends Controller
         $category->save();
 
         // إرسال الاستجابة
-        return ResponseFormatter::success('The Category Updated successfully', $category);
+        return ResponseFormatter::success('The Category Updated successfully', $category,200);
     }
     public function delete($id)
     {
@@ -77,7 +79,7 @@ class CategoryController extends Controller
            $this->destroyPicture($category->category_picture);
         }
         $category->delete();
-        return ResponseFormatter::success('The Category Deleted Successfully',$category);
+        return ResponseFormatter::success('The Category Deleted Successfully',$category,200);
     }
     public function getCategories()
     {
@@ -101,6 +103,22 @@ class CategoryController extends Controller
 
         return ResponseFormatter::success('searched successfully ',['stores'=>$stores,'products'=>$product],200);
 
+    }
+
+    public function keywordSave(Request $request)
+    {
+        $validator = Validator::make(request()->all(),[
+            'keyword' => 'required|string|max:255',
+        ]);
+        if ($validator->fails()){
+            return ResponseFormatter::error("Validation Error",$validator->errors(),422);
+        }
+        $keyword = Keyword::query()->create([
+            'user_id'=> Auth::id(),
+            'keyword' => $request['keyword']
+        ]);
+
+        return ResponseFormatter::success('Keyword created successfully.',$keyword,201);
     }
 
 

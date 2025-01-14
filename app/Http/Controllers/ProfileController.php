@@ -6,7 +6,6 @@ use App\Models\Profile;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class ProfileController extends Controller
@@ -27,10 +26,10 @@ class ProfileController extends Controller
         //store picture in project
         $fileUrl = $this->storePicture($request['profile_picture'], 'uploads');
         // Create a new profile
-        $profile = Profile::create([
+        $profile = Profile::query()->create([
             'user_id'=>Auth::id() ,
-            'first_name'=>$request->first_name,
-            'last_name'=>$request->last_name,
+            'first_name'=>$request['first_name'],
+            'last_name'=>$request['last_name'],
             'profile_picture'=>$fileUrl,
             'phone_number'=>$user->phone_number,
         ]);
@@ -47,7 +46,7 @@ class ProfileController extends Controller
             'first_name' => 'nullable|string|max:255',
             'last_name' => 'nullable|string|max:255',
             'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'phone_number' => 'nullable|regex:/^09\d{8}$/',
+            'phone_number' => 'nullable|regex:/^09\d{8}$/|unique:profiles,phone_number',
         ]);
 
         if ($validator->fails()) {

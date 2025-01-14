@@ -20,24 +20,25 @@ class WalletController extends Controller
         if ($validator->fails())
             return ResponseFormatter::error('validation errors',$validator->errors(),422);
 
-        $user=User::query()->where('phone_number',$request->phone_number)->first();
+        $user=User::query()->where('phone_number',$request['phone_number'])->first();
         $wallet = Wallet::query()->where('user_id',$user->id)->first();
         if (is_null($wallet)){
-             $wallet =Wallet::create([
+             $wallet =Wallet::query()->create([
                 'user_id'=>$user->id,
                 'balance' => 0
             ]);
         }
-        $wallet->balance+=$request->balance;
+        $wallet->balance+=$request['balance'];
         $wallet->save();
 
-        WalletTransaction::create([
+        WalletTransaction::query()->create([
             'wallet_id'=> $wallet->id,
             'transaction_type' => 'deposit',
-            'amount'=>$request->balance,
+            'amount'=>$request['balance'],
             'balance_after_transaction'=>$wallet->balance
         ]);
 
+        ( new NotificationController )->sendNotification($user,' Wallet ',' A balance worth : '.$request['balance'].' has been transferred to your wallet ',$wallet);
 
         return ResponseFormatter::success('deposit wallet successfully',$wallet,200);
 
@@ -47,7 +48,7 @@ class WalletController extends Controller
     {
         $wallet = Wallet::query()->where('user_id',Auth::id())->first();
         if (is_null($wallet)){
-            Wallet::create([
+            Wallet::query()->create([
                 'user_id'=>Auth::id(),
                 'balance' => 0
             ]);

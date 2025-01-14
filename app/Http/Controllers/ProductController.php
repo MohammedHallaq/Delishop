@@ -3,14 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Favorite;
+use App\Models\Keyword;
 use App\Models\Product;
 use App\Models\ProductRating;
 use App\Models\Store;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use function PHPUnit\Framework\isEmpty;
 
 class ProductController extends Controller
 {
@@ -31,7 +31,7 @@ class ProductController extends Controller
        ]);
        if ($validator->fails())
            return ResponseFormatter::error('Validation Error',$validator->errors(),422);
-       $fileUrl = $this->store($request['product_picture'], 'uploads');
+       $fileUrl = $this->storePicture($request['product_picture'], 'uploads');
        $product = Product::query()->create([
            'store_id' => $store->id,
            'name' => $request['name'],
@@ -41,6 +41,12 @@ class ProductController extends Controller
            'discount' => $request['discount'],
            'quantity' => $request['quantity']
        ]);
+       $keyword = Keyword::query()->where('keyword',$request['name'])->pluck('user_id')->toArray();
+       $users = User::query()->whereIn('id',$keyword)->get();
+       foreach ($users as $user){
+           ( new NotificationController )->sendNotification($user,'New Product','Dear'.$user->first_name.'the product you
+           previously searched for has been added',$product);
+       }
        return  ResponseFormatter::success('The product created successfully', $product, 201);
    }
     public function update(Request $request)
@@ -70,16 +76,8 @@ class ProductController extends Controller
 
 
         if ($request->hasFile('product_picture')) {
-            if ($product->product_picture) {
-                // حذف الصورة القديمة
-                $oldFilePath = str_replace(asset('storage/'), '',$product->product_picture);
-                if (Storage::disk('public')->exists($oldFilePath)) {
-                    Storage::disk('public')->delete($oldFilePath);
-                }
-            }
 
-            // رفع الصورة الجديدة
-            $fileUrl = $this->store($request->file('product_picture'), 'uploads');
+            $fileUrl = $this->updatePicture($request['product_picture'], $product->product_picture);
             $product->product_picture = $fileUrl;
         }
         if ($request->filled('name')){
@@ -114,10 +112,8 @@ class ProductController extends Controller
 
         if (is_null($store)  || $store->id != $product->store_id )
             return ResponseFormatter::error('This user has no permission to delete product', 'Access denied', 403);
-        // حذف الصورة القديمة
-        $oldFilePath = str_replace(asset('storage/'), '',$product->product_picture);
-        if (Storage::disk('public')->exists($oldFilePath)) {
-            Storage::disk('public')->delete($oldFilePath);
+        if ($product->product_picture){
+            $this->destroyPicture($product->product_picture);
         }
         $product->delete();
 

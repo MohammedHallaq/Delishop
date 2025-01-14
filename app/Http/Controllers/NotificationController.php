@@ -3,23 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
-use App\Models\Notification as NotificationModel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Exception\MessagingException;
+use Kreait\Firebase\Exception\FirebaseException;
+
 class NotificationController extends Controller
 {
-    public function index()
-    {
-        return Notification::query()->where('user_id', Auth::id())->get();
-    }
-
-
-    public function send ($user, $title, $body )
+    public function sendNotification($user,$title,$body,$data)
     {
         // Path to the service account key JSON file
-        $serviceAccountPath = storage_path('app/firebase_service_account.json');
+        $serviceAccountPath = storage_path('delishop-5bd8e-firebase-adminsdk-lvnij-279d324850.json');
 
         // Initialize the Firebase Factory with the service account
         $factory = (new Factory)->withServiceAccount($serviceAccountPath);
@@ -27,67 +23,66 @@ class NotificationController extends Controller
         // Create the Messaging instance
         $messaging = $factory->createMessaging();
 
+        // Get the authenticated user
+
+        // Check if FCM token exists
+        if (empty($user->fcm_token)) {
+            Log::error('FCM token is missing for user: ' . $user->id);
+            return ResponseFormatter::error('FCM token is missing for user: ' . $user->id,null,400);
+        }
+
         // Prepare the notification array
         $notification = [
             'title' => $title,
             'body' => $body,
+            'data' => $data,
             'sound' => 'default',
         ];
 
-        // Additional data payload
-        $data = [
-            'id' => $user['id'],
-            'message' => $body,
-        ];
 
         // Create the CloudMessage instance
-        $cloudMessage = CloudMessage::withTarget('token', $user['fcm_token'])
-            ->withNotification($notification)
-            ->withData($data);
+        $cloudMessage = CloudMessage::withTarget('token', $user->fcm_token)
+            ->withNotification($notification);
 
         try {
             // Send the notification
             $messaging->send($cloudMessage);
 
             // Save the notification to the database
-            NotificationModel::query()->create([
-                'type' => 'App\Notifications\UserFollow',
-                'notifiable_type' => 'App\Models\User',
-                'notifiable_id' => $user['id'],
-                'data' => json_encode([
-                    'user' => $user['first_name'] . ' ' . $user['last_name'],
-                    'message' => $body,
-                    'title' => $title,
-                ]), // The data of the notification
+            Notification::query()->create([
+                'user_id' => $user->id,
+                'title' => $title,
+                'body' => $body,
+                'is_read' => false, // الإشعار غير مقروء افتراضيًا
+                'data' => $data,
             ]);
-            return 1;
-        } catch (\Kreait\Firebase\Exception\MessagingException $e) {
-            Log::error($e->getMessage());
-            return 0;
-        } catch (\Kreait\Firebase\Exception\FirebaseException $e) {
-            Log::error($e->getMessage());
-            return 0;
+
+            return response()->json(['message' => 'Notification sent successfully'], 200);
+        } catch (MessagingException $e) {
+            Log::error('Failed to send notification: ' . $e->getMessage());
+            return ResponseFormatter::error('Failed to send notification: ' . $e->getMessage(),null,500);
+        } catch (FirebaseException $e) {
+            Log::error('Firebase error: ' . $e->getMessage());
+            return ResponseFormatter::error('Firebase error: ' . $e->getMessage(),null,500);
         }
     }
-
-    public function markAsRead($notificationId): bool
+    public function unreadCount()
     {
-        $notification = auth()->user()->notifications()->findOrFail($notificationId);
 
-        if(isset($notification)) {
-            $notification->markAsRead();
-            return true;
-        }else return false;
+        $count = Notification::query()->where('user_id',Auth::id())->where('is_read',false)->count();
+       return ResponseFormatter::success('get count notification is not read successfully',['count' => $count],200);
     }
-
-    public function destroy($id): bool
+    public function index()
     {
+        // استرجاع الإشعارات الخاصة بالمستخدم الحالي
+        $notifications = Notification::query()->where('user_id',Auth::id())->get();
 
-        $notification = auth()->user()->notifications()->findOrFail($id);
+        // تحديث حالة الإشعارات إلى "تمت القراءة"
+        foreach ($notifications as $notification) {
+            $notification->is_read = true;
+            $notification->save();
+        }
 
-        if(isset($notification)) {
-            $notification->delete();
-            return true;
-        }else return false;
+        return ResponseFormatter::success('get notification successfully ',['notification'=>$notifications],200);
     }
 }

@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductOrder;
+use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use function PHPUnit\Framework\isFalse;
 
 class ProductOrderController extends Controller
 {
@@ -155,10 +157,10 @@ class ProductOrderController extends Controller
 
         // إذا كانت الحالة مكتملة، قم بتحديث كميات المنتجات
         if ($order->status === 'completed') {
-            $productsInOrder = ProductOrder::where('order_id', $request['order_id'])->get();
+            $productsInOrder = ProductOrder::query()->where('order_id', $request['order_id'])->get();
 
             foreach ($productsInOrder as $productOrder) {
-                $product = Product::find($productOrder->product_id);
+                $product = Product::query()->find($productOrder->product_id);
                 if ($product) {
                     $product->quantity -= $productOrder->quantity;
                     $product->save();
@@ -171,8 +173,17 @@ class ProductOrderController extends Controller
             $wallet->balance += $order->total_amount;
             $wallet->save();
         }
+        $userOrder = User::query()->find($order->user_id);
 
+        if ($order->status == 'cancelled'){
 
+            ( new NotificationController )->sendNotification($order->store->user,'Order status','This customer :'.$userOrder->first_name.' cancelled his order ',$order);
+        }
+
+        if($order->status == 'completed' || $order->status == 'sent' || $order->status == 'rejected'){
+
+            ( new NotificationController )->sendNotification($userOrder,'Order status','Your order status has been changed to :'.$order->status,$order);
+        }
         return ResponseFormatter::success('Order status updated successfully', $order, 200);
     }
 

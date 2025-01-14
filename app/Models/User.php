@@ -117,4 +117,9 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Notification::class);
     }
 
+    public function keyword()
+    {
+        $this->hasMany(Keyword::class);
+    }
+
 }

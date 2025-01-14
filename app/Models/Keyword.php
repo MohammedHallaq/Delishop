@@ -4,15 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Notification extends Model
+class Keyword extends Model
 {
-    protected $fillable=[
+    protected $fillable = [
         'user_id',
-        'title',
-        'body',
-        'is_read',
-        'data'
+        'keyword'
     ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

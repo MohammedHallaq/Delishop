@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\LocationsController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductOrderController;
 use App\Http\Controllers\ProductRatingController;
@@ -33,6 +34,7 @@ Route::group(['prefix'=>'categories'],function (){
     Route::delete('delete/{id}',[CategoryController::class,'delete'])->name('category.delete')->middleware('can:category.delete');
     Route::get('getCategories',[CategoryController::class,'getCategories'])->name('category.get')->middleware('can:category.get');
     Route::post('search',[CategoryController::class,'searchByCategory'])->name('category.search');
+    Route::post('saveKeyword',[CategoryController::class,'keywordSave'])->name('category.keyword');
 
 });
 Route::group(['prefix'=>'store'],function (){
@@ -110,4 +112,10 @@ Route::group(['prefix'=>'user'],function (){
     Route::get('getUser',[UsersController::class,'getUser'])->name('user.get')->middleware('can:user.get');
     Route::post('searchByPhoneNumber',[UsersController::class,'searchUserByPhoneNumber'])->name('user.searchByPhoneNumber')->middleware('can:user.searchByPhoneNumber');
 });
+Route::group(['prefix'=>'notification'],function (){
+    Route::post('sendNotification',[NotificationController::class,'sendNotification'])->name('notification.send');
+    Route::get('index',[NotificationController::class,'index'])->name('notification.index');
+    Route::get('unreadCount',[NotificationController::class,'unreadCount'])->name('notification.unreadCount');
+});
+
 });
