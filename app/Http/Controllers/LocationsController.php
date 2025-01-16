@@ -22,8 +22,8 @@ class LocationsController extends Controller
         }
         $location = Locations::create([
             'user_id' => Auth::id(),
-            'location_name' => $request->location_name,
-            'location_url' => $request->location_url
+            'location_name' => $request['location_name'],
+            'location_url' => $request['location_url']
         ]);
 
         return ResponseFormatter::success('the location add successfully',$location,200);

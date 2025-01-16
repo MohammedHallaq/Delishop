@@ -24,17 +24,17 @@ class FavoriteController extends Controller
         $userId = Auth::id();
 
         // تحقق إذا كان المنتج موجودًا بالفعل في المفضلة
-        $exists = Favorite::where('user_id', $userId)
-            ->where('product_id', $request->product_id)
+        $exists = Favorite::query()->where('user_id', $userId)
+            ->where('product_id', $request['product_id'])
             ->exists();
 
         if ($exists) {
             return ResponseFormatter::error('Product is already in favorites', null, 409);
         }
 
-        $favorite = Favorite::create([
+        $favorite = Favorite::query()->create([
             'user_id' => $userId,
-            'product_id' => $request->product_id,
+            'product_id' => $request['product_id'],
         ]);
 
         return ResponseFormatter::success('Product added to favorites', $favorite, 201);
@@ -59,7 +59,7 @@ class FavoriteController extends Controller
     $userId = Auth::id();  // Get the authenticated user's ID
 
     // Find the favorite by user_id and product_id
-    $favorite = Favorite::where('user_id', $userId)
+    $favorite = Favorite::query()->where('user_id', $userId)
                         ->where('product_id', $productId)
                         ->first();
 
@@ -81,7 +81,7 @@ public function getFavorites()
     $user_id = Auth::id();
 
     // الحصول على قائمة المنتجات المفضلة مع معلومات المنتج فقط
-    $favorites = Favorite::where('user_id', $user_id)
+    $favorites = Favorite::query()->where('user_id', $user_id)
         ->with(['product' => function ($query) {
             $query->select('id', 'store_id', 'name', 'product_picture', 'description', 'price', 'discount', 'quantity');
         }])

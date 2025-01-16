@@ -122,14 +122,14 @@ class ProductController extends Controller
     public function getProductsByStore($store_id)
     {
         // Check if the store exists
-        $store = Store::find($store_id);
+        $store = Store::query()->find($store_id);
 
         if (!$store) {
             return ResponseFormatter::error('Store not found', null, 404);
         }
 
         // Fetch products by store_id
-        $products = Product::where('store_id', $store_id)->get();
+        $products = Product::query()->where('store_id', $store_id)->get();
 
         if ($products->isEmpty()) {
             return ResponseFormatter::error('No products found for this store', [], 404);
@@ -143,12 +143,12 @@ class ProductController extends Controller
         $product = Product::query()->with('store')->find($id);
         if (is_null($product))
             return ResponseFormatter::error('The Product Not Found',null,404);
-        $isFavorite = Favorite::where('user_id', Auth::id())
+        $isFavorite = Favorite::query()->where('user_id', Auth::id())
             ->where('product_id', $id)
             ->exists();
 
         // Get the average rating of the product
-        $rating = ProductRating::where('product_id', $id)->avg('rating');
+        $rating = ProductRating::query()->where('product_id', $id)->avg('rating');
 
         // Prepare the response data
         $data = [

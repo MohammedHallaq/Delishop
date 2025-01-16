@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductOrder;
+use App\Models\Store;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
@@ -174,13 +175,15 @@ class ProductOrderController extends Controller
             $wallet->save();
         }
         $userOrder = User::query()->find($order->user_id);
+        $store=Store::query()->find($order->store_id);
+        $userStore = User::query()->find($store->user_id);
 
-        if ($order->status == 'cancelled'){
+        if ($order->status === 'cancelled'){
 
-            ( new NotificationController )->sendNotification($order->store->user,'Order status','This customer :'.$userOrder->first_name.' cancelled his order ',$order);
+            ( new NotificationController )->sendNotification($userStore,'Order status','This customer :'.$userOrder->first_name.' cancelled his order ',$order);
         }
 
-        if($order->status == 'completed' || $order->status == 'sent' || $order->status == 'rejected'){
+        if($order->status === 'completed' || $order->status == 'sent' || $order->status == 'rejected'){
 
             ( new NotificationController )->sendNotification($userOrder,'Order status','Your order status has been changed to :'.$order->status,$order);
         }

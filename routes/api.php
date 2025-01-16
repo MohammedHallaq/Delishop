@@ -85,10 +85,10 @@ Route::group(['prefix'=>'location'],function (){
     Route::get('getUserLocations',[LocationsController::class,'getUserLocations'])->name('location.get')->middleware('can:location.get');
     Route::get('getLastUsedLocation',[LocationsController::class,'getLastUsedLocation'])->name('location.getLastUsed')->middleware('can:location.getLastUsed');
     Route::delete('deleteLocation/{id}',[LocationsController::class,'deleteLocation'])->name('location.delete')->middleware('can:location.delete');
-    Route::get('getDefaultUserLocation',[LocationsController::class,'getDefaultUserLocation'])->middleware([JwtMiddleware::class]);
+    Route::get('getDefaultUserLocation',[LocationsController::class,'getDefaultUserLocation']);
 });
 Route::group(['prefix'=>'order'],function (){
-    Route::get('getOrdersMyStore',[ProductOrderController::class,'getOrderMyStore'])->name('order.getMyStore')->middleware('can:order.getMyStore');
+    Route::get('getOrdersMyStore/{store_id}',[ProductOrderController::class,'getOrderMyStore'])->name('order.getMyStore')->middleware('can:order.getMyStore');
     Route::post('addProductToOrder',[ProductOrderController::class,'addProductToOrder'])->name('order.add')->middleware('can:order.add');
     Route::post('removeProductFromOrder',[ProductOrderController::class,'removeProductFromOrder'])->name('order.remove')->middleware('can:order.remove');
     Route::post('updateStatusOrder',[ProductOrderController::class,'updateStatusOrder'])->name('order.updateStatus')->middleware('can:order.updateStatus');

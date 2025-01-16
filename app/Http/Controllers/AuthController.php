@@ -69,7 +69,8 @@ class AuthController extends Controller
         $data = [
             'token' =>$token,
             'first_name' => $user->first_name ,
-            'last_name' => $user->last_name
+            'last_name' => $user->last_name,
+            'role_id' => $user->role_id,
         ];
 
         // إذا تم تسجيل الدخول بنجاح، إرجاع التوكن
