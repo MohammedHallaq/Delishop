@@ -57,5 +57,16 @@ class WalletController extends Controller
 
         return ResponseFormatter::success('Wallet balance retrieved successfully',['balance'=>$wallet->balance],200);
     }
+    public function getTransactionDeposit()
+    {
+        $transactions = WalletTransaction::query()->where('transaction_type','deposit')->with('wallet.user')->get();
+         $formattedTransactions = $transactions->map(function ($transaction) {
+            return [
+                'phone_number' => $transaction->wallet->user->phone_number, 
+                'amount' => $transaction->amount,
+            ];
+        });
+        return ResponseFormatter::success('get transactions deposit successfully ',$formatteTransactions,200);
+    }
 
 }
