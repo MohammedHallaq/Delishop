@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
 use App\Models\Favorite;
 use App\Models\Keyword;
 use App\Models\Store;
@@ -196,7 +195,7 @@ class StoreController extends Controller
     }
     public function getMyStore()
     {
-        $store = Store::query()->find(Auth::id());
+        $store = Store::query()->where('user_id',Auth::id());
         if (!$store){
             return ResponseFormatter::error('the Store Not Found',null,404);
         }
