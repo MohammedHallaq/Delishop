@@ -65,7 +65,9 @@ class ProfileController extends Controller
         if ($request->filled('phone_number')) {
 
             if (User::query()->where('phone_number',$request['phone_number'])->exists() && $profile->phone_number != $request['phone_number']){
-                return ResponseFormatter::error('Validation Error','the number  used for other user',422);
+                return ResponseFormatter::error('Validation Error',["phone_number"=> [
+                    "the number  used for other user."
+                ]],422);
             }
             if ($profile->phone_number != $request['phone_number']){
                 $profile->phone_number = $request->input('phone_number');
