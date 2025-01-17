@@ -64,6 +64,7 @@ class WalletController extends Controller
             return [
                 'phone_number' => $transaction->wallet->user->phone_number, 
                 'amount' => $transaction->amount,
+                'created_at' => $transaction->created_at,
             ];
         });
         return ResponseFormatter::success('get transactions deposit successfully ',$formattedTransactions,200);
