@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use function PHPUnit\Framework\isFalse;
+use function PHPUnit\Framework\lessThanOrEqual;
 
 class ProfileController extends Controller
 {
@@ -46,7 +48,7 @@ class ProfileController extends Controller
             'first_name' => 'nullable|string|max:255',
             'last_name' => 'nullable|string|max:255',
             'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'phone_number' => 'nullable|regex:/^09\d{8}$/|unique:profiles,phone_number',
+            'phone_number' => 'nullable|regex:/^09\d{8}$/',
         ]);
 
         if ($validator->fails()) {
@@ -55,6 +57,7 @@ class ProfileController extends Controller
 
         $profile = Profile::query()->where('user_id', Auth::id())->first();
 
+
         if ($request->filled('first_name')) {
             $profile->first_name = $request->input('first_name');
         }
@@ -62,10 +65,21 @@ class ProfileController extends Controller
             $profile->last_name = $request->input('last_name');
         }
         if ($request->filled('phone_number')) {
-            $profile->phone_number = $request->input('phone_number');
-            $user=User::query()->where('id',Auth::id())->first();
-            $user->phone_number=$request->input('phone_number');
-            $user->save();
+
+            if (User::query()->where('phone_number',$request['phone_number'])->exists() && $profile->phone_number != $request['phone_number']){
+                return ResponseFormatter::error('Validation Error','the number  used for other user',422);
+            }
+            if ($profile->phone_number != $request['phone_number']){
+                $profile->phone_number = $request->input('phone_number');
+                $user=User::query()->where('id',Auth::id())->first();
+                $user->phone_number=$request->input('phone_number');
+                $user->save();
+            }
+            if($profile->phone_number == $request['phone_number'] ){
+                $profile->phone_number = $request['phone_number'];
+            }
+
+
         }
 
         if ($request->hasFile('profile_picture')) {

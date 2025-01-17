@@ -26,7 +26,7 @@ class StoreController extends Controller
            'description' => 'required',
            'location_name' => 'required',
            'location_url' => 'required|url',
-           'category' => 'required|exists:categories,name',
+           'category_id' => 'required|exists:categories,id',
        ]);
        if ($validator->fails()) {
            return ResponseFormatter::error('Validation Error', $validator->errors(), 422);
@@ -35,7 +35,7 @@ class StoreController extends Controller
        $fileUrl = $this->storePicture($request['store_picture'], 'uploads');
        $store = Store::query()->create([
            'user_id' => Auth::id(),
-           'category_id' => Category::query()->where('name', $request['category'])->first()->id,
+           'category_id' => $request['category_id'],
            'name' => $request['name'],
            'store_picture' => $fileUrl,
            'description' => $request['description'],
@@ -59,7 +59,7 @@ class StoreController extends Controller
             'description' => 'string|max:255',
             'location_name' => '',
             'location_url' => 'url',
-            'category' => 'exists:categories,name',
+            'category_id' => 'exists:categories,id',
             'id' => 'required|exists:stores,id',
         ]);
         if ($validator->fails()) {
@@ -79,8 +79,8 @@ class StoreController extends Controller
             $newPath=$this->updatePicture($request['store_picture'],$store->store_picture);
             $store->store_picture  = $newPath ;
         }
-        if ($request->filled('category')){
-            $store->category_id = Category::query()->where('name',$request['category'])->first()->id;
+        if ($request->filled('category_id')){
+            $store->category_id = $request['category_id'];
         }
         if ($request->filled('name')){
             $store->name = $request['name'];
@@ -194,6 +194,13 @@ class StoreController extends Controller
 
         return ResponseFormatter::success('The Store Got Successfully',$data,200);
     }
-
+    public function getMyStore()
+    {
+        $store = Store::query()->find(Auth::id());
+        if (!$store){
+            return ResponseFormatter::error('the Store Not Found',null,404);
+        }
+        return ResponseFormatter::success('get My Store successfully',$store,200);
+    }
 
 }

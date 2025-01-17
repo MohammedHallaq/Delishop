@@ -45,6 +45,7 @@ Route::group(['prefix'=>'store'],function (){
     Route::post('search',[StoreController::class,'search'])->name('store.search')->middleware('can:store.search');
     Route::post('getStoresByIds',[StoreController::class,'getStoresByIds'])->name('store.getByIds')->middleware('can:store.getByIds');
     Route::get('getStore/{id}',[StoreController::class,'getStore'])->name('store.get')->middleware('can:store.get');
+    Route::get('getMyStore',[StoreController::class,'getMyStore'])->name('store,getMy');
 });
 Route::group(['prefix'=>'product'],function (){
     Route::post('create',[ProductController::class,'create'])->name('product.create')->middleware('can:product.create');
