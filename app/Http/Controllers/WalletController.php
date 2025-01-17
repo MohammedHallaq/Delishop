@@ -66,7 +66,7 @@ class WalletController extends Controller
                 'amount' => $transaction->amount,
             ];
         });
-        return ResponseFormatter::success('get transactions deposit successfully ',$formatteTransactions,200);
+        return ResponseFormatter::success('get transactions deposit successfully ',$formattedTransactions,200);
     }
 
 }
