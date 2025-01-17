@@ -31,6 +31,7 @@ class UsersController extends Controller
             'role_id' => $request['role_id'],
         ]);
         $this->givePermissions($user, $request['role_id']);
+        $user->token ="";
         return ResponseFormatter::success('User created',$user, 201);
 
     }
