@@ -30,7 +30,7 @@ class UsersController extends Controller
             'password' => bcrypt($request['password']),
             'role_id' => $request['role_id'],
         ]);
-        $this->givePermissions($request['role_id'],$user);
+        $this->givePermissions($user, $request['role_id']);
         return ResponseFormatter::success('User created',$user, 201);
 
     }
