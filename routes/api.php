@@ -99,6 +99,8 @@ Route::group(['prefix'=>'order'],function (){
 Route::group(['prefix'=>'wallet'],function (){
     Route::post('deposit',[WalletController::class,'deposit'])->name('wallet.deposit')->middleware('can:wallet.deposit');
     Route::get('balance', [WalletController::class, 'getMyBalance'])->name('wallet.getMyBalance')->middleware('can:wallet.getMyBalance');
+    Route::get('getTransactionsDeposit', [WalletController::class, 'getTransactionDeposit'])->name('wallet.getTransactions');
+    
 });
 Route::group(['prefix'=>'profile'],function (){
     Route::post('createProfile',[ProfileController::class,'createProfile'])->name('profile.create')->middleware('can:profile.create');
