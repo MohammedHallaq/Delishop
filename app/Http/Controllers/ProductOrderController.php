@@ -280,5 +280,27 @@ class ProductOrderController extends Controller
         return ResponseFormatter::success('get my Orders successfully',$orders,200);
     }
 
+    public function getMyStoreOrders()
+    {
+        // Retrieve the store associated with the authenticated user
+        $store = Store::query()->where('user_id', Auth::id())->first();
+
+        // Check if the store exists
+        if (!$store) {
+            return ResponseFormatter::error('Store not found', null, 404);
+        }
+
+        // Fetch orders for the store
+        $orders = Order::with('productsOrder.product', 'location', 'store')
+            ->where('store_id', $store->id)
+            ->get();
+
+        // Check if orders are found
+        if ($orders->isEmpty()) {
+            return ResponseFormatter::error('No orders found for this store', [], 404);
+        }
+
+        return ResponseFormatter::success('Orders retrieved successfully', $orders, 200);
+    }
 
 }

@@ -91,6 +91,7 @@ Route::group(['prefix'=>'location'],function (){
 });
 Route::group(['prefix'=>'order'],function (){
     Route::get('getOrdersMyStore/{store_id}',[ProductOrderController::class,'getOrderMyStore'])->name('order.getMyStore')->middleware('can:order.getMyStore');
+    Route::get('getMyStoreOrders', [ProductOrderController::class, 'getMyStoreOrders'])->name('order.getMyStoreOrders')->middleware('can:order.getMyStore');
     Route::post('addProductToOrder',[ProductOrderController::class,'addProductToOrder'])->name('order.add')->middleware('can:order.add');
     Route::post('removeProductFromOrder',[ProductOrderController::class,'removeProductFromOrder'])->name('order.remove')->middleware('can:order.remove');
     Route::post('updateStatusOrder',[ProductOrderController::class,'updateStatusOrder'])->name('order.updateStatus')->middleware('can:order.updateStatus');
