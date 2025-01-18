@@ -51,7 +51,7 @@ Route::group(['prefix'=>'product'],function (){
     Route::post('create',[ProductController::class,'create'])->name('product.create')->middleware('can:product.create');
     Route::post('update',[ProductController::class,'update'])->name('product.update')->middleware('can:product.update');
     Route::delete('delete/{id}',[ProductController::class,'delete'])->name('product.delete')->middleware('can:product.delete');
-    Route::get('getProductsByStore/{store_id}',[ProductController::class,'getProductsByStore'])->name('product.getByStore')->middleware('can:product.getByStore');
+    Route::get('getProductsByStore',[ProductController::class,'getProductsByStore'])->name('product.getByStore')->middleware('can:product.getByStore');
     Route::get('getProduct/{id}',[ProductController::class,'getProduct'])->name('product.get')->middleware('can:product.get');
     Route::post('search',[ProductController::class,'search'])->name('product.search')->middleware('can:product.search');
     Route::post('getProductsByIds',[ProductController::class,'getProductsByIds'])->name('product.getByIds');
