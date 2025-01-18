@@ -20,7 +20,7 @@ class StoreController extends Controller
 
 
        $validator = Validator::make($request->all(), [
-           'name' => 'required',
+           'name' => 'required|unique:stores,name',
            'store_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
            'description' => 'required',
            'location_name' => 'required',
@@ -76,9 +76,24 @@ class StoreController extends Controller
         if ($request->filled('category_id')){
             $store->category_id = $request['category_id'];
         }
-        if ($request->filled('name')){
-            $store->name = $request['name'];
-        }
+        if ($request->filled('name')) {
+
+    if (Store::query()->where('name', $request['name'])->exists() && $store->name != $request['name']) {
+        return ResponseFormatter::error('Validation Error', ["name" => [
+            "the name is used for another user."
+        ]], 422);
+    }
+
+    if ($store->name != $request['name']) {
+        $store->name = $request->input('name');
+
+    }
+
+    if ($store->name == $request['name']) {
+        $store->name = $request['name'];
+    }
+
+}
         if ($request->filled('description')){
             $store->description = $request['description'];
         }
