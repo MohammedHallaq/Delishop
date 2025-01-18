@@ -20,7 +20,7 @@ class StoreController extends Controller
 
 
        $validator = Validator::make($request->all(), [
-           'name' => 'required|unique:stores,name',
+           'name' => 'required',
            'store_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
            'description' => 'required',
            'location_name' => 'required',
@@ -53,7 +53,7 @@ class StoreController extends Controller
     public function update(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'nullable|unique:stores,name',
+            'name' => 'nullable',
             'store_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'description' => 'nullable|string|max:255',
             'location_name' => 'nullable|string|max:255',
