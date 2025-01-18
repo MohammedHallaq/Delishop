@@ -34,7 +34,7 @@ class StoreController extends Controller
        $fileUrl = $this->storePicture($request['store_picture'], 'uploads');
        $store = Store::query()->create([
            'user_id' => Auth::id(),
-           'category_id' => $request['category_id'],
+           'category_id' =>(int)$request['category_id'],
            'name' => $request['name'],
            'store_picture' => $fileUrl,
            'description' => $request['description'],
@@ -74,7 +74,7 @@ class StoreController extends Controller
             $store->store_picture  = $newPath ;
         }
         if ($request->filled('category_id')){
-            $store->category_id = $request['category_id'];
+            $store->category_id =(int)$request['category_id'];
         }
         if ($request->filled('name')) {
 
