@@ -87,21 +87,19 @@ class ProductController extends Controller
 
         // Solution
         if ($request->filled('name')) {
-            if ($request->input('name') !== $product->name) {
-                // Check if the new name is already used by another product
-                $isNameTaken = Product::query()
-                    ->where('name', $request->input('name'))
-                    ->where('id', '!=', $product->id)
-                    ->exists();
+            // Check if the new name exists in the database for another product
+            if (Product::query()->where('name', $request['name'])->exists() && $product->name != $request['name']) {
+                return ResponseFormatter::error('Validation Error', ["name" => [
+                    "The name is already used by another product."
+                ]], 422);
+            }
         
-                if ($isNameTaken) {
-                    return ResponseFormatter::error('Validation Error', ['name' => ['The name is already taken by another product.']], 422);
-                }
-        
+            // Update the name only if it's different
+            if ($product->name != $request['name']) {
                 $product->name = $request->input('name');
             }
         }
-        
+
         if ($request->filled('description')){
             $product->description = $request->input('description');
         }
