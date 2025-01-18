@@ -124,7 +124,7 @@ class ProductOrderController extends Controller
         }
 
         // الحصول على الطلبية
-        $order = Order::query()->find($request['order_id']);
+        $order = Order::with('productsOrder.product','location', 'store')->find($request['order_id']);
         if (is_null($order)) {
             return ResponseFormatter::error('Order not found', null, 404);
         }
@@ -153,6 +153,7 @@ class ProductOrderController extends Controller
         }
 
         // تحديث الحالة
+        $order->message = $request['message'];
         $order->status = $request['status'];
         $order->save();
 
@@ -174,6 +175,7 @@ class ProductOrderController extends Controller
             $wallet->balance += $order->total_amount;
             $wallet->save();
         }
+
         $userOrder = User::query()->find($order->user_id);
         $store=Store::query()->find($order->store_id);
         $userStore = User::query()->find($store->user_id);
@@ -187,6 +189,7 @@ class ProductOrderController extends Controller
 
             ( new NotificationController )->sendNotification($userOrder,'Order status','Your order status has been changed to :'.$order->status,$order);
         }
+
         return ResponseFormatter::success('Order status updated successfully', $order, 200);
     }
 
@@ -272,8 +275,9 @@ class ProductOrderController extends Controller
     }*/
     public function getOrderMyStore($store_id)
     {
-        $order = Order::with('productsOrder')->where('store_id',$store_id)->get();
-        return ResponseFormatter::success('get my Orders successfully',$order,200);
+        $orders = Order::with('productsOrder.product','location', 'store')->where('store_id',$store_id)->get();
+
+        return ResponseFormatter::success('get my Orders successfully',$orders,200);
     }
 
 

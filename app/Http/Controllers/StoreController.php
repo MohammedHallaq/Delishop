@@ -53,26 +53,21 @@ class StoreController extends Controller
     public function update(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'unique:stores,name',
-            'store_picture' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-            'description' => 'string|max:255',
-            'location_name' => '',
-            'location_url' => 'url',
-            'category_id' => 'exists:categories,id',
-            'id' => 'required|exists:stores,id',
+            'name' => 'nullable|unique:stores,name',
+            'store_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'description' => 'nullable|string|max:255',
+            'location_name' => 'nullable|string|max:255',
+            'location_url' => 'nullable|url',
+            'category_id' => 'nullable|exists:categories,id',
         ]);
         if ($validator->fails()) {
             return ResponseFormatter::error('Validation Error', $validator->errors(), 422);
         }
 
-        $store = Store::query()->find($request->input('id'));
-        if (is_null($store))
-            return ResponseFormatter::error('The Store Not Found',null,404);
-
-
-        if (Auth::id()!=$store->user_id)
-            return ResponseFormatter::error('This user has no permission to edit',null,403);
-
+        $store = Store::query()->where('user_id',Auth::id())->first();
+        if (is_null($store)){
+            return $this->create($request);
+        }
 
         if ($request->hasFile('store_picture')) {
             $newPath=$this->updatePicture($request['store_picture'],$store->store_picture);

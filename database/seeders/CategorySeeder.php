@@ -13,10 +13,14 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        for ($i = 1; $i <=  5; $i++) {
-            Category::create([
-               'name' => 'Category ' . $i,
-            ]);
-        }
+        $pictures = ['Shoes.svg', 'Perfumes.svg','Other.svg', 'Mobile Devices.svg', 'Laptops.svg', 'Health.svg', 'Groceries.svg',
+                     'Food.svg','Electrical.svg','Drinks.svg','Clothing.svg', 'Beauty.svg','Accessories.svg'];
+
+        foreach ($pictures as $picture)
+        Category::query()->create([
+            'name' =>$picture ,
+            'category_picture' => 'http://127.0.0.1:8000/storage/uploads/'.$picture
+        ]);
+
     }
 }
