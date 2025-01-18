@@ -52,7 +52,7 @@ class ProductController extends Controller
     public function update(Request $request)
     {
         $validator = Validator::make($request->all(),[
-            'name' => 'nullable|string|unique:products,name',
+            'name' => 'nullable|string',
             'product_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'description' => 'nullable|string|max:255',
             'price' => 'nullable|numeric',
