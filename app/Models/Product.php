@@ -15,6 +15,13 @@ class Product extends Model
         'discount',
         'quantity'
     ];
+
+    protected $casts = [
+        'price' => 'double',
+        'discount' => 'double',
+        'quantity' => 'integer',
+    ];
+
     public function store()
     {
         return $this->belongsTo(Store::class);
