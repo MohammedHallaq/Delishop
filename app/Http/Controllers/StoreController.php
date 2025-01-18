@@ -195,20 +195,14 @@ class StoreController extends Controller
     }
     public function getMyStore()
     {
-        $store = Store::where('user_id', auth()->id())->first();
+        $store = Store::query()->where('user_id', Auth::id())->first();
     
-        if (empty($store)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Store not found',
-            ], 404); // Return 404 Not Found
+        if (!$store) {
+            return ResponseFormatter::error('The Store Not Found', null, 404);
         }
     
-        return response()->json([
-            'success' => true,
-            'message' => 'Get My Store successfully',
-            'data' => $store,
-        ]);
-    }    
+        return ResponseFormatter::success('Get My Store successfully', $store, 200);
+    }
+    
 
 }
