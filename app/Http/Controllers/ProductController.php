@@ -80,9 +80,28 @@ class ProductController extends Controller
             $fileUrl = $this->updatePicture($request['product_picture'], $product->product_picture);
             $product->product_picture = $fileUrl;
         }
-        if ($request->filled('name')){
-            $product->name = $request->input('name');
+        // we had a problem here, when we pass the same name....
+        // if ($request->filled('name')){
+        //     $product->name = $request->input('name');
+        // }
+
+        // Solution
+        if ($request->filled('name')) {
+            if ($request->input('name') !== $product->name) {
+                // Check if the new name is already used by another product
+                $isNameTaken = Product::query()
+                    ->where('name', $request->input('name'))
+                    ->where('id', '!=', $product->id)
+                    ->exists();
+        
+                if ($isNameTaken) {
+                    return ResponseFormatter::error('Validation Error', ['name' => ['The name is already taken by another product.']], 422);
+                }
+        
+                $product->name = $request->input('name');
+            }
         }
+        
         if ($request->filled('description')){
             $product->description = $request->input('description');
         }
