@@ -102,7 +102,7 @@ Route::group(['prefix'=>'wallet'],function (){
     Route::post('deposit',[WalletController::class,'deposit'])->name('wallet.deposit')->middleware('can:wallet.deposit');
     Route::get('balance', [WalletController::class, 'getMyBalance'])->name('wallet.getMyBalance')->middleware('can:wallet.getMyBalance');
     Route::get('getTransactionsDeposit', [WalletController::class, 'getTransactionDeposit'])->name('wallet.getTransactions');
-    
+
 });
 Route::group(['prefix'=>'profile'],function (){
     Route::post('createProfile',[ProfileController::class,'createProfile'])->name('profile.create')->middleware('can:profile.create');
@@ -110,6 +110,7 @@ Route::group(['prefix'=>'profile'],function (){
     Route::get('getProfile',[ProfileController::class,'getProfile'])->name('profile.get')->middleware('can:profile.get');
 });
 Route::group(['prefix'=>'user'],function (){
+    Route::get('getProcessRegistrations',[UsersController::class,'getProcessRegistration'])->name('user.registrations');
     Route::post('creatUser',[UsersController::class,'createUser'])->name('user.create')->middleware('can:user.create');
     Route::post('updateUser',[UsersController::class,'updateUser'])->name('user.update')->middleware('can:user.update');
     Route::delete('deleteUser/{id}',[UsersController::class,'deleteUser'])->name('user.delete')->middleware('can:user.delete');

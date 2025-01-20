@@ -32,9 +32,9 @@ class ProductRatingController extends Controller
         ]);
         return ResponseFormatter::success('Add Rating Successful', $rating,200);
     }
-    public function getRatingUser()
+    public function getRatingUser($product_id)
     {
-        $ratingsProduct = ProductRating::query()->where('user_id',Auth::id())->get();
+        $ratingsProduct = ProductRating::query()->where('product_id',$product_id)->where('user_id',Auth::id())->get();
         return ResponseFormatter::success('Get My Rating successfully',$ratingsProduct,200);
     }
     public function getRatings($product_id)
@@ -99,4 +99,5 @@ class ProductRatingController extends Controller
 
         return ResponseFormatter::success('Get Avg Rating Successful', $avg,200);
     }
+
 }

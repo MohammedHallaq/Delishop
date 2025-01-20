@@ -12,7 +12,6 @@ use App\Models\WalletTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use function PHPUnit\Framework\isFalse;
 
 class ProductOrderController extends Controller
 {
@@ -193,86 +192,6 @@ class ProductOrderController extends Controller
         return ResponseFormatter::success('Order status updated successfully', $order, 200);
     }
 
-
-    /*public function addProductToOrder(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'order_id' => 'required|exists:orders,id',
-            'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|numeric|min:1',
-        ]);
-
-        if ($validator->fails()) {
-            return ResponseFormatter::error('Validation error', $validator->errors(), 422);
-        }
-
-        // الحصول على الطلبية
-        $order = Order::query()->find($request->input('order_id'));
-        if (is_null($order)) {
-            return ResponseFormatter::error('Order not found', null, 404);
-        }
-
-        // التحقق من أن الطلبية في حالة "pending" قبل إضافة منتجات
-        if ($order->status !== 'pending') {
-            return ResponseFormatter::error('Cannot modify order, it is no longer pending', null, 403);
-        }
-
-        // إضافة المنتج للطلبية
-        $product = Product::query()->find($request->input(['product_id']));
-        ProductOrder::create([
-            'order_id' => $order->id,
-            'product_id' => $request->input(['product_id']),
-            'quantity' => $request->input(['quantity']),
-        ]);
-
-        // تحديث المبلغ الإجمالي للطلبية
-        $totalAmount = $order->total_amount + ($product->price * $request->input(['quantity']));
-        $order->total_amount = $totalAmount;
-        $order->save();
-
-        return ResponseFormatter::success('Product added to order successfully', $order, 200);
-    }
-    public function removeProductFromOrder(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'product_id' => 'required|exists:products,id',
-            'order_id' => 'required|exists:orders,id',
-        ]);
-
-        if ($validator->fails()) {
-            return ResponseFormatter::error('Validation error', $validator->errors(), 422);
-        }
-
-        // الحصول على الطلبية
-        $order = Order::query()->find($request->input('order_id'));
-        if (is_null($order)) {
-            return ResponseFormatter::error('Order not found', null, 404);
-        }
-
-        // التحقق من أن الطلبية في حالة "pending"
-        if ($order->status !== 'pending') {
-            return ResponseFormatter::error('Cannot modify order, it is no longer pending', null, 403);
-        }
-
-        // العثور على المنتج في الطلبية وحذفه
-        $productOrder = ProductOrder::query()->where('order_id',$order->id)
-            ->where('product_id', $request->input(['product_id']))
-            ->first();
-
-        if ($productOrder) {
-            // تحديث المبلغ الإجمالي للطلبية
-            $product = Product::query()->find($request->input(['product_id']));
-            $totalAmount = $order->total_amount - ($product->price * $productOrder->number);
-            $order->total_amount = $totalAmount;
-            $order->save();
-
-            // حذف المنتج من الطلب
-            $productOrder->delete();
-            return ResponseFormatter::success('Product removed from order successfully', $order, 200);
-        } else {
-            return ResponseFormatter::error('Product not found in this order', null, 404);
-        }
-    }*/
     public function getOrderMyStore($store_id)
     {
         $orders = Order::with('productsOrder.product','location', 'store')->where('store_id',$store_id)->get();
@@ -282,20 +201,16 @@ class ProductOrderController extends Controller
 
     public function getMyStoreOrders()
     {
-        // Retrieve the store associated with the authenticated user
         $store = Store::query()->where('user_id', Auth::id())->first();
 
-        // Check if the store exists
         if (!$store) {
             return ResponseFormatter::error('Store not found', null, 404);
         }
 
-        // Fetch orders for the store
-        $orders = Order::with('productsOrder.product', 'location', 'store')
+        $orders = Order::with('productsOrder.product', 'location', 'store','user')
             ->where('store_id', $store->id)
             ->get();
 
-        // Check if orders are found
         if ($orders->isEmpty()) {
             return ResponseFormatter::error('No orders found for this store', [], 404);
         }

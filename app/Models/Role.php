@@ -10,4 +10,8 @@ class Role extends Model
     {
         return $this->hasMany(User::class);
     }
+    public function registration()
+    {
+        $this->belongsTo(Registrations::class);
+    }
 }

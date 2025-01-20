@@ -54,13 +54,14 @@ class ProfileController extends Controller
         }
 
         $profile = Profile::query()->where('user_id', Auth::id())->first();
-
+        $user=User::query()->where('id',Auth::id())->first();
 
         if ($request->filled('first_name')) {
-            $profile->first_name = $request->input('first_name');
+            $profile->first_name = $user->first_name = $request->input('first_name');
         }
         if ($request->filled('last_name')) {
-            $profile->last_name = $request->input('last_name');
+            $profile->last_name = $user->last_name = $request->input('last_name');
+
         }
         if ($request->filled('phone_number')) {
 
@@ -70,15 +71,8 @@ class ProfileController extends Controller
                 ]],422);
             }
             if ($profile->phone_number != $request['phone_number']){
-                $profile->phone_number = $request->input('phone_number');
-                $user=User::query()->where('id',Auth::id())->first();
-                $user->phone_number=$request->input('phone_number');
-                $user->save();
+                $profile->phone_number =   $user->phone_number = $request->input('phone_number');
             }
-            if($profile->phone_number == $request['phone_number'] ){
-                $profile->phone_number = $request['phone_number'];
-            }
-
 
         }
 
@@ -89,7 +83,7 @@ class ProfileController extends Controller
 
         // حفظ التغييرات
         $profile->save();
-
+        $user->save();
         return ResponseFormatter::success('The Profile updated successfully', $profile, 200);
     }
 

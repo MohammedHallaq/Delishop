@@ -20,6 +20,7 @@ class AuthController extends Controller
             'last_name' => 'required|string|max:255',
             'phone_number' => 'required|regex:/^09\d{8}$/|unique:users,phone_number',
             'password' => 'required|string|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#?!@$%^&*-])[A-Za-z\d#$?!@$%^&*-]{8,}$/|confirmed',
+            'fcm_token' => 'nullable|unique:users,fcm_token',
         ]);
 
         if ($validator->fails())
@@ -30,6 +31,7 @@ class AuthController extends Controller
             'last_name' => $request['last_name'],
             'phone_number' => $request['phone_number'],
             'password' => bcrypt($request['password']),
+            'fcm_token' => $request['fcm_token'],
             'role_id' => 3,
         ]);
         $clientRole = Role::query()->where('name','client')->first();
@@ -59,7 +61,7 @@ class AuthController extends Controller
     {
 
         // الحصول على بيانات تسجيل الدخول (رقم الهاتف وكلمة المرور)
-        $credentials = $request->only(['phone_number', 'password']);
+        $credentials = $request->only(['phone_number', 'password', 'fcm_token']);
 
         // محاولة تسجيل الدخول باستخدام Auth
         if (!$token = auth('api')->attempt($credentials)) {
@@ -68,6 +70,7 @@ class AuthController extends Controller
         $user = auth('api')->user();
         $data = [
             'token' =>$token,
+            'fcm_token'=> $user->fcm_token,
             'first_name' => $user->first_name ,
             'last_name' => $user->last_name,
             'role_id' => $user->role_id,

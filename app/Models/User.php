@@ -119,7 +119,16 @@ class User extends Authenticatable implements JWTSubject
 
     public function keyword()
     {
-        $this->hasMany(Keyword::class);
+        return $this->hasMany(Keyword::class);
+    }
+
+    public function createdRegistration()
+    {
+       return $this->hasMany(Registrations::class,);
+    }
+    public function creatorRegistration()
+    {
+        return $this->belongsTo(Registrations::class);
     }
 
 }

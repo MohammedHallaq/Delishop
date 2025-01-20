@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Registrations;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Role;
 
@@ -32,6 +33,12 @@ class UsersController extends Controller
         ]);
         $this->givePermissions($user, $request['role_id']);
         $user->token ="";
+        Registrations::query()->create([
+            'created_user_id'=>$user->id,
+            'creator_user_id'=>Auth::id(),
+            'role_id'=>$user->role_id,
+            'process_type'=>'create'
+        ]);
         return ResponseFormatter::success('User created',$user, 201);
 
     }
@@ -69,6 +76,12 @@ class UsersController extends Controller
          }
          $user->save();
          $this->givePermissions($request['role_id'],$user);
+        Registrations::query()->create([
+            'created_user_id'=>$user->id,
+            'creator_user_id'=>Auth::id(),
+            'role_id'=>$user->role_id,
+            'process_type'=>'update'
+        ]);
         return ResponseFormatter::success('User created',$user, 201);
 
     }
@@ -78,6 +91,13 @@ class UsersController extends Controller
         $user = User::query()->find($user_id);
         if (!$user)
             return ResponseFormatter::error('User not found',null, 404);
+
+        Registrations::query()->create([
+            'created_user_id'=>$user->id,
+            'creator_user_id'=>Auth::id(),
+            'role_id'=>$user->role_id,
+            'process_type'=>'delete'
+        ]);
         $user->delete();
         return ResponseFormatter::success('User deleted successfully',null, 200);
     }
@@ -107,6 +127,12 @@ class UsersController extends Controller
             return ResponseFormatter::error('User not found',null, 404);
 
         return ResponseFormatter::success('User retrieved successfully',$user, 200);
+    }
+
+    public function getProcessRegistration()
+    {
+        $registration = Registrations::with('createdUser','creatorUser')->get();
+        return ResponseFormatter::success('get process registrations successfully',$registration,200);
     }
 
     public function givePermissions($user,$role_id)
