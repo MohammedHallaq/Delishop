@@ -61,7 +61,7 @@ class AuthController extends Controller
     {
 
         // الحصول على بيانات تسجيل الدخول (رقم الهاتف وكلمة المرور)
-        $credentials = $request->only(['phone_number', 'password', 'fcm_token']);
+        $credentials = $request->only(['phone_number', 'password']);
 
         // محاولة تسجيل الدخول باستخدام Auth
         if (!$token = auth('api')->attempt($credentials)) {
@@ -70,7 +70,7 @@ class AuthController extends Controller
         $user = auth('api')->user();
 
 
-        $user->fcm_token = $request->fcm_token;
+        $user->fcm_token = $request->input('fcm_token');
         $user->save(); // Save the updated token in the database    
 
         $data = [
