@@ -68,6 +68,11 @@ class AuthController extends Controller
             return  ResponseFormatter::error('Unauthorized',null,401);
         }
         $user = auth('api')->user();
+
+
+        $user->fcm_token = $request->fcm_token;
+        $user->save(); // Save the updated token in the database    
+
         $data = [
             'token' =>$token,
             'fcm_token'=> $user->fcm_token,
