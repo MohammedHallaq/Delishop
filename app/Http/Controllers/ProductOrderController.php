@@ -179,15 +179,44 @@ class ProductOrderController extends Controller
         $store=Store::query()->find($order->store_id);
         $userStore = User::query()->find($store->user_id);
 
-        if ($order->status === 'cancelled'){
-
-            ( new NotificationController )->sendNotification($userStore,'Order status','This customer :'.$userOrder->first_name.' cancelled his order ',$order);
+        $orderMessages = [
+            'cancelled' => [
+                'user' => $userStore,
+                'title' => 'Order status',
+                'message' => 'This customer :' . $userOrder->first_name . ' cancelled his order!',
+            ],
+            'completed' => [
+                'user' => $userOrder,
+                'title' => 'Order status',
+                'message' => 'Your order has been accepted by the store ' . $order->store->name,
+            ],
+            'sent' => [
+                'user' => $userOrder,
+                'title' => 'Order status',
+                'message' => 'Your order has been delivered to you by the store ' . $order->store->name,
+            ],
+            'rejected' => [
+                'user' => $userOrder,
+                'title' => 'Order status',
+                'message' => 'Your order has been rejected by the store ' . ($order->store ? $order->store->name : '') . " because: " . $order->message,
+            ],
+        ];
+        
+        // Check if the order status exists in the mapping
+        if (isset($orderMessages[$order->status])) {
+            // Send the notification
+            (new NotificationController)->sendNotification(
+                $orderMessages[$order->status]['user'],
+                $orderMessages[$order->status]['title'],
+                $orderMessages[$order->status]['message'],
+                $order
+            );
         }
 
-        if($order->status === 'completed' || $order->status == 'sent' || $order->status == 'rejected'){
+        // if($order->status === 'completed' || $order->status == 'sent' || $order->status == 'rejected'){
 
-            ( new NotificationController )->sendNotification($userOrder,'Order status','Your order status has been changed to :'.$order->status,$order);
-        }
+        //     ( new NotificationController )->sendNotification($userOrder,'Order status','Your order status has been accepted by the store '.$order->store->name,$order);
+        // }
 
         return ResponseFormatter::success('Order status updated successfully', $order, 200);
     }

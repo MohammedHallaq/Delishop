@@ -44,8 +44,8 @@ class ProductController extends Controller
        $keyword = Keyword::query()->where('keyword',$request['name'])->pluck('user_id')->toArray();
        $users = User::query()->whereIn('id',$keyword)->get();
        foreach ($users as $user){
-           ( new NotificationController )->sendNotification($user,'New Product','Dear'.$user->first_name.'the product you
-           previously searched for has been added',$product);
+           ( new NotificationController )->sendNotification($user,'New Product','Dear '.$user->first_name.' the product you
+           previously searched for has been added!',$product);
        }
        return  ResponseFormatter::success('The product created successfully', $product, 201);
    }

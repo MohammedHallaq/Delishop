@@ -44,8 +44,8 @@ class StoreController extends Controller
        $keyword = Keyword::query()->where('keyword',$request['name'])->pluck('user_id')->toArray();
        $users = User::query()->whereIn('id',$keyword)->get();
        foreach ($users as $user){
-           ( new NotificationController )->sendNotification($user,'New Store','Dear'.$user->first_name.'the store you
-           previously searched for has been added',$store);
+           ( new NotificationController )->sendNotification($user,'New Store','Dear '.$user->first_name.' the store you
+           previously searched for has been added!',$store);
        }
        return ResponseFormatter::success('The Store Created Successfully',$store,201);
    }

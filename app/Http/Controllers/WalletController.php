@@ -38,7 +38,7 @@ class WalletController extends Controller
             'balance_after_transaction'=>$wallet->balance
         ]);
 
-        ( new NotificationController )->sendNotification($user,' Wallet ',' A balance worth : '.$request['balance'].' has been transferred to your wallet ',$wallet);
+        ( new NotificationController )->sendNotification($user,' Wallet ',' A balance worth : '.$request['balance'].' has been transferred to your wallet!',$wallet);
 
         return ResponseFormatter::success('deposit wallet successfully',$wallet,200);
 
