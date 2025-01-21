@@ -25,9 +25,9 @@ class ProductController extends Controller
            'name' => 'required|string|unique:products,name',
            'product_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
            'description' => 'required|string|max:255',
-           'price' => 'required|numeric',
+           'price' => 'required|numeric|gt:0',
            'discount' => 'numeric',
-           'quantity' => 'required|numeric'
+           'quantity' => 'required|numeric|gt:0'
        ]);
        if ($validator->fails())
            return ResponseFormatter::error('Validation Error',$validator->errors(),422);
@@ -55,9 +55,9 @@ class ProductController extends Controller
             'name' => 'nullable|string',
             'product_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'description' => 'nullable|string|max:255',
-            'price' => 'nullable|numeric',
+            'price' => 'nullable|numeric|gt:0',
             'discount' => 'nullable|numeric',
-            'quantity' => 'nullable|numeric',
+            'quantity' => 'nullable|numeric|gt:0',
             'product_id' => 'required|exists:products,id'
         ]);
 
