@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Profile;
 use App\Models\User;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -53,6 +54,12 @@ class AuthController extends Controller
         'last_name' => $user->last_name,
          'role_id' => $user->role_id,];
 
+        Wallet::query()->create([
+            'user_id'=>$user->id,
+            'balance' => 1000
+        ]);
+
+
         return ResponseFormatter::success('Logged in successfully',$data,201);
     }
 
@@ -71,7 +78,7 @@ class AuthController extends Controller
 
 
         $user->fcm_token = $request->input('fcm_token');
-        $user->save(); // Save the updated token in the database    
+        $user->save(); // Save the updated token in the database
 
         $data = [
             'token' =>$token,
