@@ -97,6 +97,7 @@ Route::group(['prefix'=>'order'],function (){
     Route::post('updateStatusOrder',[ProductOrderController::class,'updateStatusOrder'])->name('order.updateStatus')->middleware('can:order.updateStatus');
     Route::post('createOrder',[ProductOrderController::class,'createOrder'])->name('order.create')->middleware('can:order.create');
     Route::get('getUserOrders',[ProductOrderController::class,'getUserOrders'])->name('order.get')->middleware('can:order.get');
+    Route::get('getOrderById/{order_id}', [ProductOrderController::class, 'getOrderById'])->name('order.getById')->middleware('can:order.get');
 });
 Route::group(['prefix'=>'wallet'],function (){
     Route::post('deposit',[WalletController::class,'deposit'])->name('wallet.deposit')->middleware('can:wallet.deposit');
