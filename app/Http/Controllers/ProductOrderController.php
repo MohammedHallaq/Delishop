@@ -112,17 +112,15 @@ class ProductOrderController extends Controller
 
     public function getOrderById($order_id)
     {
-        $order = Order::with('productsOrder.product', 'location', 'store')
-                      ->where('user_id', Auth::id()) // To make sure users can access only their orders
-                      ->where('id', $order_id)
-                      ->first();
+        $order = Order::with('productsOrder.product','location', 'store')->find($order_id);
 
         if (!$order) {
             return ResponseFormatter::error('Order not found', null, 404);
         }
-
+    
         return ResponseFormatter::success('Order found', $order, 200);
     }
+
 
 
 
