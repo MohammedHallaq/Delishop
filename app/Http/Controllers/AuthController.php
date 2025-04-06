@@ -20,9 +20,10 @@ class AuthController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'phone_number' => 'required|regex:/^09\d{8}$/|unique:users,phone_number',
-            'password' => 'required|string|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#?!@$%^&*-])[A-Za-z\d#$?!@$%^&*-]{8,}$/|confirmed',
+            'password' => 'required|string|min:8|confirmed',
             'fcm_token' => 'nullable|unique:users,fcm_token',
         ]);
+
 
         if ($validator->fails())
             return ResponseFormatter::error('Validation error', $validator->errors(), 422);
