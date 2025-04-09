@@ -32,7 +32,7 @@ Route::group(['prefix'=>'categories'],function (){
     Route::post('create',[CategoryController::class,'create'])->name('category.create')->middleware('can:category.create');
     Route::post('update',[CategoryController::class,'update'])->name('category.update')->middleware('can:category.update');
     Route::delete('delete/{id}',[CategoryController::class,'delete'])->name('category.delete')->middleware('can:category.delete');
-    Route::get('getCategories',[CategoryController::class,'getCategories'])->name('category.get')->middleware('can:category.get');
+    Route::get('getCategories',[CategoryController::class,'getCategories'])->name('category.get')->withoutMiddleware([JwtMiddleware::class]);
     Route::post('search',[CategoryController::class,'searchByCategory'])->name('category.search');
     Route::post('saveKeyword',[CategoryController::class,'keywordSave'])->name('category.keyword');
 
@@ -42,19 +42,19 @@ Route::group(['prefix'=>'store'],function (){
     Route::post('update',[StoreController::class,'update'])->name('store.update')->middleware('can:store.update');
     Route::delete('delete/{id}',[StoreController::class,'delete'])->name('store.delete')->middleware('can:store.delete');
     Route::get('getStoreByCategory/{category_id}',[StoreController::class,'getStoreByCategory'])->name('store.getByCategory')->middleware('can:store.getByCategory');
-    Route::post('search',[StoreController::class,'search'])->name('store.search')->middleware('can:store.search');
-    Route::post('getStoresByIds',[StoreController::class,'getStoresByIds'])->name('store.getByIds')->middleware('can:store.getByIds');
-    Route::get('getStore/{id}',[StoreController::class,'getStore'])->name('store.get')->middleware('can:store.get');
+    Route::post('search',[StoreController::class,'search'])->name('store.search')->withoutMiddleware([JwtMiddleware::class]);
+    Route::post('getStoresByIds',[StoreController::class,'getStoresByIds'])->name('store.getByIds')->withoutMiddleware([JwtMiddleware::class]);
+    Route::get('getStore/{id}',[StoreController::class,'getStore'])->name('store.get')->withoutMiddleware([JwtMiddleware::class]);
     Route::get('getMyStore',[StoreController::class,'getMyStore'])->name('store,getMy');
 });
 Route::group(['prefix'=>'product'],function (){
     Route::post('create',[ProductController::class,'create'])->name('product.create')->middleware('can:product.create');
     Route::post('update',[ProductController::class,'update'])->name('product.update')->middleware('can:product.update');
     Route::delete('delete/{id}',[ProductController::class,'delete'])->name('product.delete')->middleware('can:product.delete');
-    Route::get('getProductsByStore/{store_id}',[ProductController::class,'getProductsByStore'])->name('product.getByStore')->middleware('can:product.getByStore');
+    Route::get('getProductsByStore/{store_id}',[ProductController::class,'getProductsByStore'])->name('product.getByStore')->withoutMiddleware([JwtMiddleware::class]);
     Route::get('getProductsMyStore',[ProductController::class,'getProductsMyStore'])->name('product.getMyStore');
-    Route::get('getProduct/{id}',[ProductController::class,'getProduct'])->name('product.get')->middleware('can:product.get');
-    Route::post('search',[ProductController::class,'search'])->name('product.search')->middleware('can:product.search');
+    Route::get('getProduct/{id}',[ProductController::class,'getProduct'])->name('product.get')->withoutMiddleware([JwtMiddleware::class]);
+    Route::post('search',[ProductController::class,'search'])->name('product.search')->withoutMiddleware([JwtMiddleware::class]);
     Route::post('getProductsByIds',[ProductController::class,'getProductsByIds'])->name('product.getByIds');
 
 });
