@@ -14,7 +14,7 @@ class LocationsController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'location_name' => 'required|string|max:255',
-            'location_url' => ' url'
+            'location_url' => 'nullable|url'
         ]);
 
         if ($validator->fails()) {
