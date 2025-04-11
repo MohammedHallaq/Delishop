@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Locations;
 use App\Models\Profile;
 use App\Models\User;
 use App\Models\Wallet;
@@ -22,6 +23,7 @@ class AuthController extends Controller
             'phone_number' => 'required|regex:/^09\d{8}$/|unique:users,phone_number',
             'password' => 'required|string|min:8|confirmed',
             'fcm_token' => 'nullable|unique:users,fcm_token',
+            'location' => 'required'
         ]);
 
 
@@ -48,12 +50,19 @@ class AuthController extends Controller
             'profile_picture'=>null,
             'phone_number'=>$user->phone_number,
         ]);
+        Locations::query()->create([
+            'user_id' => $user->id ,
+           'location_name' => $request['location'],
+           'location_url' => null
+        ]);
 
         $data = [
         'token' => auth('api')->login($user),
         'first_name' => $user->first_name ,
         'last_name' => $user->last_name,
-         'role_id' => $user->role_id,];
+        'role_id' => $user->role_id,
+        'location' => $request['location']
+        ];
 
         Wallet::query()->create([
             'user_id'=>$user->id,
