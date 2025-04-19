@@ -94,6 +94,7 @@ class ProductOrderController extends Controller
         // البيانات للرد
         $data = Order::with('productsOrder.product','location', 'store')->find($order->id);
 
+        (new NotificationController())->sendNotificationToTargets('order created', $data, 'ar');
 
         return ResponseFormatter::success('Order created successfully', $data,201);
     }
@@ -117,7 +118,7 @@ class ProductOrderController extends Controller
         if (!$order) {
             return ResponseFormatter::error('Order not found', null, 404);
         }
-    
+
         return ResponseFormatter::success('Order found', $order, 200);
     }
 
@@ -189,48 +190,13 @@ class ProductOrderController extends Controller
             $wallet->save();
         }
 
-        $userOrder = User::query()->find($order->user_id);
-        $store=Store::query()->find($order->store_id);
-        $userStore = User::query()->find($store->user_id);
 
-        $orderMessages = [
-            'cancelled' => [
-                'user' => $userStore,
-                'title' => 'Order status',
-                'message' => 'This customer :' . $userOrder->first_name . ' cancelled his order!',
-            ],
-            'completed' => [
-                'user' => $userOrder,
-                'title' => 'Order status',
-                'message' => 'Your order has been accepted by the store ' . $order->store->name,
-            ],
-            'sent' => [
-                'user' => $userOrder,
-                'title' => 'Order status',
-                'message' => 'Your order has been delivered to you by the store ' . $order->store->name,
-            ],
-            'rejected' => [
-                'user' => $userOrder,
-                'title' => 'Order status',
-                'message' => 'Your order has been rejected by the store ' . ($order->store ? $order->store->name : '') . " because: " . $order->message,
-            ],
-        ];
-        
-        // Check if the order status exists in the mapping
-        if (isset($orderMessages[$order->status])) {
-            // Send the notification
-            (new NotificationController)->sendNotification(
-                $orderMessages[$order->status]['user'],
-                $orderMessages[$order->status]['title'],
-                $orderMessages[$order->status]['message'],
-                $order
-            );
-        }
 
-        // if($order->status === 'completed' || $order->status == 'sent' || $order->status == 'rejected'){
 
-        //     ( new NotificationController )->sendNotification($userOrder,'Order status','Your order status has been accepted by the store '.$order->store->name,$order);
-        // }
+         if($order->status === 'completed' || $order->status == 'sent' || $order->status == 'rejected'){
+
+            ( new NotificationController )->sendNotificationToTargets('order created',$order,'ar');
+         }
 
         return ResponseFormatter::success('Order status updated successfully', $order, 200);
     }

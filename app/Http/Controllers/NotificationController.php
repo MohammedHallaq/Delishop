@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
+use App\Models\Store;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Factory;
@@ -12,8 +14,32 @@ use Kreait\Firebase\Exception\FirebaseException;
 
 class NotificationController extends Controller
 {
-    public function sendNotification($user,$title,$body,$data)
+    public function sendNotificationToTargets($title,$data,$lang)
     {
+
+            $user = User::query()->find($data['user_id']);
+            $store = Store::with('user')->find($data['store_id']);
+            $superAdmin = User::query()->where('role_id',1)->get();
+
+        // إرسال للمستخدم
+        if ($user) {
+            $this->sendNotification($user, $title, $data, $lang);
+        }
+
+        // إرسال لصاحب المتجر
+        if ($store && $store->user) {
+            $this->sendNotification($store->user, $title, $data, $lang);
+        }
+
+        // إرسال للمشرفين
+        foreach ($superAdmin as $admin) {
+            $this->sendNotification($admin, $title, $data, $lang);
+        }
+    }
+    public function sendNotification($user,$title,$data,$lang)
+    {
+
+
         // Path to the service account key JSON file
         $serviceAccountPath = storage_path('delishop-5bd8e-firebase-adminsdk-lvnij-279d324850.json');
 
@@ -27,14 +53,27 @@ class NotificationController extends Controller
 
         // Check if FCM token exists
         if (empty($user->fcm_token)) {
-            Log::error('FCM token is missing for user: ' . $user->id);
-            return ResponseFormatter::error('FCM token is missing for user: ' . $user->id,null,400);
+            Log::warning("FCM token is missing for user ID: {$user->id}");
+            return;
         }
+
+
+        // اختيار اللغة من الكونفيج
+        $message = config("notification_messages.{$lang}.{$title}.{$user->role_id}");
+
+        // تخصيص الرسالة
+        $message = strtr($message, [
+            ':user'     => $user->name,
+            ':store'    => $data->store->name,
+            ':location' => $data->location->location_name,
+            ':reason'   => $data->message ?? '',
+        ]);
+
 
         // Prepare the notification array
         $notification = [
             'title' => $title,
-            'body' => $body,
+            'body' => $message,
             'data' => $data,
             'sound' => 'default',
         ];
@@ -52,7 +91,7 @@ class NotificationController extends Controller
             Notification::query()->create([
                 'user_id' => $user->id,
                 'title' => $title,
-                'body' => $body,
+                'body' => $message,
                 'is_read' => false, // الإشعار غير مقروء افتراضيًا
                 'data' => $data,
             ]);
@@ -70,7 +109,7 @@ class NotificationController extends Controller
     {
 
         $count = Notification::query()->where('user_id',Auth::id())->where('is_read',false)->count();
-       return ResponseFormatter::success('get count notification is not read successfully',['count' => $count],200);
+        return ResponseFormatter::success('get count notification is not read successfully',['count' => $count],200);
     }
     public function index()
     {
