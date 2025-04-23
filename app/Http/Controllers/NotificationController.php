@@ -12,14 +12,15 @@ use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Exception\MessagingException;
 use Kreait\Firebase\Exception\FirebaseException;
 use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
+
 class NotificationController extends Controller
 {
     public function sendNotificationToTargets($title,$data,$lang)
     {
 
-            $user = User::query()->find($data['user_id']);
-            $store = Store::with('user')->find($data['store_id']);
-            $superAdmin = User::query()->where('role_id',1)->get();
+        $user = User::query()->find($data['user_id']);
+        $store = Store::with('user')->find($data['store_id']);
+        $superAdmin = User::query()->where('role_id',1)->get();
 
         // إرسال للمستخدم
         if ($user) {
@@ -63,7 +64,7 @@ class NotificationController extends Controller
 
         // تخصيص الرسالة
         $message = strtr($message, [
-            ':user'     => "{$user->first_name}"." {$user->last_name}",
+            ':user'     => "{$user->first_name}"."{$user->last_name}",
             ':store'    => $data->store->name,
             ':location' => $data->location->location_name,
             ':reason'   => $data->message ?? '',
@@ -78,19 +79,14 @@ class NotificationController extends Controller
             'sound' => 'default',
         ];
 
+
         // Create the CloudMessage instance
         $cloudMessage = CloudMessage::withTarget('token', $user->fcm_token)
-            ->withNotification(FirebaseNotification::create($title,$message));;
-
-
+            ->withNotification(FirebaseNotification::create($title,$message));
 
         try {
-
-
             // Send the notification
             $messaging->send($cloudMessage);
-
-
 
             // Save the notification to the database
             Notification::query()->create([
@@ -101,20 +97,11 @@ class NotificationController extends Controller
                 'data' => $data,
             ]);
 
-
             return response()->json(['message' => 'Notification sent successfully'], 200);
-        }catch (MessagingException $e) {
-        Log::error('⚠️ Failed to send notification', [
-            'user_id' => $user->id ?? null,
-            'fcm_token' => $user->fcm_token ?? null,
-            'title' => $title ?? null,
-            'message' => $message ?? null,
-            'data' => $data ?? null,
-            'exception' => $e->getMessage(),
-        ]);
-
-        return ResponseFormatter::error('Failed to send notification: ' . $e->getMessage(), null, 500);
-    } catch (FirebaseException $e) {
+        } catch (MessagingException $e) {
+            Log::error('Failed to send notification: ' . $e->getMessage());
+            return ResponseFormatter::error('Failed to send notification: ' . $e->getMessage(),null,500);
+        } catch (FirebaseException $e) {
             Log::error('Firebase error: ' . $e->getMessage());
             return ResponseFormatter::error('Firebase error: ' . $e->getMessage(),null,500);
         }
