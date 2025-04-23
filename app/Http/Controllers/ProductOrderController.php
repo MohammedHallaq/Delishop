@@ -51,9 +51,9 @@ class ProductOrderController extends Controller
 
             ];
         }
-        $wallet = Wallet::query()->where('user_id',Auth::id())->first();
+        /*$wallet = Wallet::query()->where('user_id',Auth::id())->first();
         if (!$wallet || $totalAmount > $wallet->balance)
-            return ResponseFormatter::error('You do not have enough balance in your wallet',null,404);
+            return ResponseFormatter::error('You do not have enough balance in your wallet',null,404);*/
         // إنشاء الطلبية
         $order = Order::query()->create([
             'user_id' => Auth::id(),
@@ -79,7 +79,7 @@ class ProductOrderController extends Controller
 
         }
 
-        // خصم الرصيد من المحفظة
+       /* // خصم الرصيد من المحفظة
         $wallet->balance -= $totalAmount;
         $wallet->save();
 
@@ -88,7 +88,7 @@ class ProductOrderController extends Controller
             'transaction_type' => 'payment',
             'amount'=>$totalAmount,
             'balance_after_transaction'=>$wallet->balance
-        ]);
+        ]);*/
 
 
         // البيانات للرد
@@ -184,19 +184,25 @@ class ProductOrderController extends Controller
             }
         }
 
-        if ($order->status === 'cancelled'){
+      /*  if ($order->status === 'cancelled'){
             $wallet = Wallet::query()->where('user_id',Auth::id())->first();
             $wallet->balance += $order->total_amount;
             $wallet->save();
+        }*/
+
+        $notification = new NotificationController();
+        if ($order->status === 'completed' ){
+            $notification->sendNotificationToTargets('order accepted', $order, 'ar');
         }
-
-
-
-
-         if($order->status === 'completed' || $order->status == 'sent' || $order->status == 'rejected'){
-
-            ( new NotificationController )->sendNotificationToTargets('order created',$order,'ar');
-         }
+        if ($order->status === 'sent' ){
+            $notification->sendNotificationToTargets('order delivered', $order, 'ar');
+        }
+        if ($order->status === 'rejected' ){
+            $notification->sendNotificationToTargets('order rejected', $order, 'ar');
+        }
+        if ($order->status === 'cancelled' ){
+            $notification->sendNotificationToTargets('order cancelled', $order, 'ar');
+        }
 
         return ResponseFormatter::success('Order status updated successfully', $order, 200);
     }
